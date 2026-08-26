@@ -1,0 +1,121 @@
+# ==========================================
+# Gradle 构建产物
+# ==========================================
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ==========================================
+# Kotlin / JVM 编译产物
+# ==========================================
+*.class
+*.log
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+
+# ==========================================
+# Android 特定
+# ==========================================
+local.properties
+*.iml
+captures/
+.externalNativeBuild/
+.cxx/
+google-services.json
+google-services.cr.json
+
+# ==========================================
+# iOS / Xcode 特定
+# ==========================================
+iosApp/Pods/
+iosApp/.symlinks/
+iosApp/Flutter/
+iosApp/Podfile.lock
+iosApp/xcuserdata/
+iosApp/*.xcworkspace
+!iosApp/*.xcodeproj
+*.xcuserstate
+*.ipa
+*.dSYM.zip
+*.dSYM
+DerivedData/
+*.hmap
+*.xccheckout
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+project.xcworkspace/
+
+# ==========================================
+# Kotlin/Native 缓存
+# ==========================================
+konan/
+.konan/
+
+# ==========================================
+# Compose Multiplatform / Desktop
+# ==========================================
+composeApp/build/
+desktopApp/build/
+jbr/
+
+# ==========================================
+# JS / Wasm 目标
+# ==========================================
+kotlin-js-store/
+node_modules/
+.yarn/
+package-lock.json
+pnpm-lock.yaml
+
+# ==========================================
+# IDE 配置（IntelliJ / Android Studio）
+# ==========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# ==========================================
+# VS Code（可选）
+# ==========================================
+.vscode/
+
+# ==========================================
+# 操作系统文件
+# ==========================================
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+*~
+
+# ==========================================
+# 敏感文件 & 环境变量
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.keystore
+*.jks
+*.key
+*.pem
+
+
+.kotlin/
+
