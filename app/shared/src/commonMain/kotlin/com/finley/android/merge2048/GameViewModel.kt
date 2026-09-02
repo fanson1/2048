@@ -10,8 +10,12 @@ class GameViewModel : ViewModel() {
 
     private val engine = GameEngine()
 
+    private var bestScore = 0
+
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
+
+    private var winDialogShown = false
 
     init {
         emitState()
@@ -22,35 +26,39 @@ class GameViewModel : ViewModel() {
             is GameIntent.Move -> handleMove(intent.direction)
             is GameIntent.NewGame -> handleNewGame()
             is GameIntent.DismissWinDialog -> _state.update { it.copy(showWinDialog = false) }
-            is GameIntent.ContinueAfterWin -> handleContinueAfterWin()
+            is GameIntent.ContinueAfterWin -> _state.update { it.copy(showWinDialog = false) }
         }
     }
 
     private fun handleMove(direction: Direction) {
         val moved = engine.move(direction)
-        if (moved) {
+        if (moved || engine.isGameOver) {
+            bestScore = maxOf(bestScore, engine.score)
             emitState()
         }
     }
 
     private fun handleNewGame() {
         engine.resetGame()
-        emitState(showWinDialog = false)
+        winDialogShown = false
+        emitState()
     }
 
-    private fun handleContinueAfterWin() {
-        _state.update { it.copy(showWinDialog = false) }
-    }
-
-    private fun emitState(showWinDialog: Boolean? = null) {
+    private fun emitState() {
         val hasWon = engine.hasWon
-        _state.update {
+        val shouldShowWinDialog = hasWon && !winDialogShown
+        if (shouldShowWinDialog) {
+            winDialogShown = true
+        }
+
+        _state.update { current ->
             GameState(
                 board = engine.getBoard(),
                 score = engine.score,
+                bestScore = bestScore,
                 isGameOver = engine.isGameOver,
                 hasWon = hasWon,
-                showWinDialog = showWinDialog ?: (hasWon && !it.showWinDialog)
+                showWinDialog = shouldShowWinDialog
             )
         }
     }

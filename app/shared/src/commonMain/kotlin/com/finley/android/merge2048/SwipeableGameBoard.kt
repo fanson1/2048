@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -16,47 +17,49 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 
+private const val SWIPE_THRESHOLD_DP = 20f
+
+private fun resolveSwipe(dx: Float, dy: Float): Direction? {
+    return when {
+        abs(dx) > abs(dy) && abs(dx) > SWIPE_THRESHOLD_DP ->
+            if (dx > 0) Direction.RIGHT else Direction.LEFT
+        abs(dy) > abs(dx) && abs(dy) > SWIPE_THRESHOLD_DP ->
+            if (dy > 0) Direction.DOWN else Direction.UP
+        else -> null
+    }
+}
+
 @Composable
 fun SwipeableGameBoard(
     board: List<List<Int>>,
     onSwipe: (Direction) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var dragStartX by remember { mutableFloatStateOf(0f) }
-    var dragStartY by remember { mutableFloatStateOf(0f) }
-
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(Color(0xFFbbada0))
             .pointerInput(Unit) {
+                var startPosition = Offset.Zero
+                var swiped = true
                 detectDragGestures(
-                    onDragStart = { offset ->
-                        dragStartX = offset.x
-                        dragStartY = offset.y
+                    onDragStart = {
+                        startPosition = it
+                        swiped = false
                     },
                     onDragEnd = { },
                     onDragCancel = { },
-                    onDrag = { change, dragAmount ->
+                    onDrag = { change, _ ->
                         change.consume()
 
-                        val deltaX = dragAmount.x
-                        val deltaY = dragAmount.y
+                        if (swiped) return@detectDragGestures
 
-                        if (abs(deltaX) > 50 || abs(deltaY) > 50) {
-                            if (abs(deltaX) > abs(deltaY)) {
-                                if (deltaX > 0) {
-                                    onSwipe(Direction.RIGHT)
-                                } else {
-                                    onSwipe(Direction.LEFT)
-                                }
-                            } else {
-                                if (deltaY > 0) {
-                                    onSwipe(Direction.DOWN)
-                                } else {
-                                    onSwipe(Direction.UP)
-                                }
-                            }
+                        val dx = change.position.x - startPosition.x
+                        val dy = change.position.y - startPosition.y
+                        val direction = resolveSwipe(dx, dy)
+                        if (direction != null) {
+                            swiped = true
+                            onSwipe(direction)
                         }
                     }
                 )

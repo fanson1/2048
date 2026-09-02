@@ -69,8 +69,9 @@ class GameEngine {
 
         if (moved) {
             addRandomTile()
-            checkGameState()
         }
+
+        checkGameState()
 
         return moved
     }
@@ -87,10 +88,11 @@ class GameEngine {
 
     private fun moveRight() {
         for (i in 0 until BOARD_SIZE) {
-            val row = board[i].filter { it != 0 }.toMutableList().reversed().toMutableList()
+            val row = board[i].filter { it != 0 }.reversed().toMutableList()
             val mergedRow = mergeRow(row)
             board[i] = IntArray(BOARD_SIZE) { index ->
-                if (index < mergedRow.size) mergedRow[mergedRow.size - 1 - index] else 0
+                val fromRight = BOARD_SIZE - 1 - index
+                if (fromRight < mergedRow.size) mergedRow[fromRight] else 0
             }
         }
     }
@@ -120,7 +122,8 @@ class GameEngine {
             }
             val mergedColumn = mergeRow(column.reversed().toMutableList())
             for (i in 0 until BOARD_SIZE) {
-                board[i][j] = if (i < mergedColumn.size) mergedColumn[mergedColumn.size - 1 - i] else 0
+                val fromBottom = BOARD_SIZE - 1 - i
+                board[i][j] = if (fromBottom < mergedColumn.size) mergedColumn[fromBottom] else 0
             }
         }
     }
@@ -166,6 +169,17 @@ class GameEngine {
 
     fun getBoard(): List<List<Int>> {
         return board.map { it.toList() }
+    }
+
+    internal fun setBoardForTesting(values: List<List<Int>>) {
+        for (i in 0 until BOARD_SIZE) {
+            for (j in 0 until BOARD_SIZE) {
+                board[i][j] = values[i][j]
+            }
+        }
+        score = 0
+        isGameOver = false
+        hasWon = false
     }
 }
 
