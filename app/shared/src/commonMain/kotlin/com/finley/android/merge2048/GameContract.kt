@@ -6,7 +6,10 @@ data class GameState(
     val bestScore: Int = 0,
     val isGameOver: Boolean = false,
     val hasWon: Boolean = false,
-    val showWinDialog: Boolean = false
+    val showWinDialog: Boolean = false,
+    val maxTile: Int = 0,
+    val canUndo: Boolean = false,
+    val moveCount: Int = 0
 )
 
 sealed class GameIntent {
@@ -14,4 +17,5 @@ sealed class GameIntent {
     data object NewGame : GameIntent()
     data object DismissWinDialog : GameIntent()
     data object ContinueAfterWin : GameIntent()
+    data object Undo : GameIntent()
 }

@@ -12,6 +12,8 @@ class GameViewModel : ViewModel() {
 
     private var bestScore = 0
 
+    private var bestMaxTile = 0
+
     private val _state = MutableStateFlow(GameState())
     val state: StateFlow<GameState> = _state.asStateFlow()
 
@@ -27,6 +29,7 @@ class GameViewModel : ViewModel() {
             is GameIntent.NewGame -> handleNewGame()
             is GameIntent.DismissWinDialog -> _state.update { it.copy(showWinDialog = false) }
             is GameIntent.ContinueAfterWin -> _state.update { it.copy(showWinDialog = false) }
+            is GameIntent.Undo -> handleUndo()
         }
     }
 
@@ -44,12 +47,20 @@ class GameViewModel : ViewModel() {
         emitState()
     }
 
+    private fun handleUndo() {
+        if (engine.undo()) {
+            winDialogShown = false
+            emitState()
+        }
+    }
+
     private fun emitState() {
         val hasWon = engine.hasWon
         val shouldShowWinDialog = hasWon && !winDialogShown
         if (shouldShowWinDialog) {
             winDialogShown = true
         }
+        bestMaxTile = maxOf(bestMaxTile, engine.maxTile)
 
         _state.update { current ->
             GameState(
@@ -58,7 +69,10 @@ class GameViewModel : ViewModel() {
                 bestScore = bestScore,
                 isGameOver = engine.isGameOver,
                 hasWon = hasWon,
-                showWinDialog = shouldShowWinDialog
+                showWinDialog = shouldShowWinDialog,
+                maxTile = bestMaxTile,
+                canUndo = engine.canUndo,
+                moveCount = engine.moveCount
             )
         }
     }

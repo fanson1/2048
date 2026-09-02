@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 
 class SharedCommonTest {
 
@@ -120,5 +121,76 @@ class SharedCommonTest {
 
         // The two 2s merge to 4 and must sit at the bottom row
         assertEquals(4, engine.getBoard()[3][0])
+    }
+
+    @Test
+    fun `undo restores previous board and score`() {
+        val engine = GameEngine()
+        engine.setBoardForTesting(
+            listOf(
+                listOf(2, 2, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0)
+            )
+        )
+
+        assertFalse(engine.canUndo)
+        assertTrue(engine.move(Direction.LEFT))
+        assertTrue(engine.canUndo)
+
+        val scoredBoard = engine.getBoard()
+        val scoredValue = engine.score
+
+        assertTrue(engine.undo())
+        assertFalse(engine.canUndo)
+
+        // Undo restores the 2,2 row and zeroes the merge score
+        assertEquals(2, engine.getBoard()[0][0])
+        assertEquals(2, engine.getBoard()[0][1])
+        assertEquals(0, engine.score)
+        assertNotEquals(scoredValue, engine.score)
+    }
+
+    @Test
+    fun `maxTile reports the largest tile on the board`() {
+        val engine = GameEngine()
+        engine.setBoardForTesting(
+            listOf(
+                listOf(2, 8, 4, 2),
+                listOf(16, 0, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0)
+            )
+        )
+        assertEquals(16, engine.maxTile)
+    }
+
+    @Test
+    fun `moveCount increments on valid moves and resets on new game`() {
+        val engine = GameEngine()
+        engine.setBoardForTesting(
+            listOf(
+                listOf(2, 2, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0)
+            )
+        )
+
+        assertEquals(0, engine.moveCount)
+        assertTrue(engine.move(Direction.LEFT))
+        assertEquals(1, engine.moveCount)
+
+        // Reset to a no-op board: invalid moves don't count
+        engine.setBoardForTesting(
+            listOf(
+                listOf(2, 4, 2, 4),
+                listOf(4, 2, 4, 2),
+                listOf(2, 4, 2, 4),
+                listOf(4, 2, 4, 2)
+            )
+        )
+        assertEquals(0, engine.moveCount)
     }
 }

@@ -20,6 +20,18 @@ class GameEngine {
     var hasWon: Boolean = false
         private set
 
+    val maxTile: Int
+        get() = board.maxOf { row -> row.max() }
+
+    var moveCount: Int = 0
+        private set
+
+    private var snapshotBoard: Array<IntArray>? = null
+    private var snapshotScore = 0
+
+    val canUndo: Boolean
+        get() = snapshotBoard != null
+
     init {
         initializeBoard()
     }
@@ -29,12 +41,31 @@ class GameEngine {
         score = 0
         isGameOver = false
         hasWon = false
+        moveCount = 0
+        snapshotBoard = null
+        snapshotScore = 0
         addRandomTile()
         addRandomTile()
     }
 
     fun resetGame() {
         initializeBoard()
+    }
+
+    fun undo(): Boolean {
+        val snap = snapshotBoard ?: return false
+        if (isGameOver) isGameOver = false
+        board = snap
+        score = snapshotScore
+        moveCount = (moveCount - 1).coerceAtLeast(0)
+        snapshotBoard = null
+        snapshotScore = 0
+        // Recompute verdicts from restored board
+        hasWon = board.any { row -> row.any { it == WIN_VALUE } }
+        if (!canMove()) {
+            isGameOver = true
+        }
+        return true
     }
 
     private fun addRandomTile() {
@@ -57,6 +88,7 @@ class GameEngine {
         if (isGameOver) return false
 
         val previousBoard = Array(BOARD_SIZE) { board[it].copyOf() }
+        val previousScore = score
 
         when (direction) {
             Direction.LEFT -> moveLeft()
@@ -68,6 +100,10 @@ class GameEngine {
         val moved = !board.contentDeepEquals(previousBoard)
 
         if (moved) {
+            // Snapshot for undo (state before this move, before new tile spawns)
+            snapshotBoard = Array(BOARD_SIZE) { previousBoard[it].copyOf() }
+            snapshotScore = previousScore
+            moveCount++
             addRandomTile()
         }
 
@@ -180,6 +216,9 @@ class GameEngine {
         score = 0
         isGameOver = false
         hasWon = false
+        moveCount = 0
+        snapshotBoard = null
+        snapshotScore = 0
     }
 }
 
