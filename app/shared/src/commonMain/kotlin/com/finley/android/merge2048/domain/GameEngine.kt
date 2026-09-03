@@ -1,4 +1,4 @@
-package com.finley.android.merge2048
+package com.finley.android.merge2048.domain
 
 import kotlin.random.Random
 
@@ -220,8 +220,4 @@ class GameEngine {
         snapshotBoard = null
         snapshotScore = 0
     }
-}
-
-enum class Direction {
-    LEFT, RIGHT, UP, DOWN
 }

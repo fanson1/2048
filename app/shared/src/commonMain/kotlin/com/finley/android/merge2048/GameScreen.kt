@@ -1,29 +1,36 @@
 package com.finley.android.merge2048
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.finley.android.merge2048.domain.Direction
+import com.finley.android.merge2048.domain.GameIntent
+import com.finley.android.merge2048.domain.GameState
+import com.finley.android.merge2048.presentation.GameViewModel
+import com.finley.android.merge2048.ui.GameOverlay
+import com.finley.android.merge2048.ui.NewGameButton
+import com.finley.android.merge2048.ui.ScoreBlock
+import com.finley.android.merge2048.ui.StatPill
+import com.finley.android.merge2048.ui.UndoButton
 
+/**
+ * Screen layer: composes the presentational building blocks ([ui] package)
+ * and wires them to the [GameViewModel]. It holds no game logic.
+ */
 @Composable
 fun GameScreen(viewModel: GameViewModel = viewModel()) {
     val state by viewModel.state.collectAsState()
@@ -39,15 +46,26 @@ private fun GameContent(
     state: GameState,
     onIntent: (GameIntent) -> Unit
 ) {
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(GameColors.AppBackground)
-            .padding(horizontal = 16.dp, vertical = 24.dp),
+            .background(GameColors.AppBackground),
         contentAlignment = Alignment.TopCenter
     ) {
+        // Adapt to available space so the board never overflows, especially on
+        // short/landscape screens.
+        val compact = maxHeight < 640.dp
+        val titleFont = if (compact) 44.sp else 52.sp
+        val hintVisible = maxHeight > 520.dp
+        val footerVisible = maxHeight > 470.dp
+        val headerGap = if (compact) 12.dp else 20.dp
+        val boardTopGap = if (compact) 10.dp else 14.dp
+
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 480.dp)
+                .padding(horizontal = 16.dp, vertical = if (compact) 12.dp else 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // ---------- Header ----------
@@ -55,10 +73,12 @@ private fun GameContent(
                 score = state.score,
                 bestScore = state.bestScore,
                 maxTile = state.maxTile,
-                moveCount = state.moveCount
+                moveCount = state.moveCount,
+                titleFont = titleFont,
+                compact = compact
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(headerGap))
 
             // ---------- Sub header: hint + new game ----------
             Row(
@@ -66,13 +86,17 @@ private fun GameContent(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "HOW TO PLAY:",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                    color = GameColors.SubText
-                )
+                if (hintVisible) {
+                    Text(
+                        text = "HOW TO PLAY:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                        color = GameColors.SubText
+                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     UndoButton(
                         enabled = state.canUndo,
@@ -83,15 +107,10 @@ private fun GameContent(
                     )
                 }
             }
-            Text(
-                text = "Swipe to move tiles. Merge same numbers to combine them.",
-                fontSize = 12.sp,
-                color = GameColors.SubText
-            )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(boardTopGap))
 
-            // ---------- Board + overlays ----------
+            // ---------- Board + overlays (flexible, fits remaining space) ----------
             BoardAndOverlays(
                 board = state.board,
                 showWin = state.showWinDialog,
@@ -101,26 +120,30 @@ private fun GameContent(
                 maxTile = state.maxTile,
                 onSwipe = { direction -> onIntent(GameIntent.Move(direction)) },
                 onNewGame = { onIntent(GameIntent.NewGame) },
-                onContinue = { onIntent(GameIntent.ContinueAfterWin) }
+                onContinue = { onIntent(GameIntent.ContinueAfterWin) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
             )
 
-            Spacer(modifier = Modifier.weight(1f))
-
             // ---------- Footer ----------
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Swipe or use arrow keys / WASD \u2022 R to restart \u2022 Undo to go back",
-                    fontSize = 11.sp,
-                    color = GameColors.SubText,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Made for fun \u2022 Merge2048",
-                    fontSize = 11.sp,
-                    color = GameColors.SubText.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
+            if (footerVisible) {
+                Spacer(modifier = Modifier.height(10.dp))
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Swipe or use arrow keys / WASD \u2022 R to restart \u2022 Undo to go back",
+                        fontSize = 11.sp,
+                        color = GameColors.SubText,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Made for fun \u2022 Merge2048",
+                        fontSize = 11.sp,
+                        color = GameColors.SubText.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         }
     }
@@ -131,7 +154,9 @@ private fun Header(
     score: Int,
     bestScore: Int,
     maxTile: Int,
-    moveCount: Int
+    moveCount: Int,
+    titleFont: TextUnit,
+    compact: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -141,10 +166,10 @@ private fun Header(
         Column {
             Text(
                 text = "2048",
-                fontSize = 52.sp,
+                fontSize = titleFont,
                 fontWeight = FontWeight.Black,
                 color = GameColors.HeaderText,
-                lineHeight = 54.sp
+                lineHeight = titleFont
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 StatPill(
@@ -152,7 +177,7 @@ private fun Header(
                     value = if (maxTile == 0) "\u2014" else maxTile.toString(),
                     accent = GameColors.Tile2048
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(if (compact) 8.dp else 12.dp))
                 StatPill(
                     label = "MOVES",
                     value = moveCount.toString(),
@@ -164,44 +189,13 @@ private fun Header(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ScoreBlock(
                 label = "SCORE",
-                value = score
+                value = score,
+                compact = compact
             )
             ScoreBlock(
                 label = "BEST",
-                value = bestScore
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatPill(
-    label: String,
-    value: String,
-    accent: Color
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            color = accent
-        )
-        Spacer(modifier = Modifier.width(5.dp))
-        AnimatedContent(
-            targetState = value,
-            transitionSpec = {
-                (fadeIn(tween(200)) togetherWith fadeOut(tween(100)))
-            },
-            label = "stat"
-        ) { target ->
-            Text(
-                text = target,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Black,
-                color = GameColors.HeaderText
+                value = bestScore,
+                compact = compact
             )
         }
     }
@@ -217,282 +211,68 @@ private fun BoardAndOverlays(
     maxTile: Int,
     onSwipe: (Direction) -> Unit,
     onNewGame: () -> Unit,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1f)
-    ) {
-        SwipeableGameBoard(
-            board = board,
-            onSwipe = onSwipe,
-            onNewGame = onNewGame,
-            modifier = Modifier.fillMaxSize()
-        )
-
-        // Win overlay
-        AnimatedVisibility(
-            visible = showWin,
-            enter = fadeIn(tween(200)),
-            exit = fadeOut(tween(200))
-        ) {
-            GameOverlay(
-                title = "You win!",
-                subtitle = "You made the 2048 tile!",
-                score = score,
-                bestScore = bestScore,
-                maxTile = maxTile,
-                primaryLabel = "Play again",
-                onPrimary = onNewGame,
-                secondaryLabel = "Keep going",
-                onSecondary = onContinue,
-                highlight = GameColors.Tile2048
-            )
-        }
-
-        // Game over overlay
-        AnimatedVisibility(
-            visible = isGameOver,
-            enter = fadeIn(tween(200)),
-            exit = fadeOut(tween(200))
-        ) {
-            GameOverlay(
-                title = "Game over",
-                subtitle = "Board is full.",
-                score = score,
-                bestScore = bestScore,
-                maxTile = maxTile,
-                primaryLabel = "Try again",
-                onPrimary = onNewGame,
-                secondaryLabel = null,
-                onSecondary = null,
-                highlight = GameColors.ButtonBackground
-            )
-        }
-    }
-}
-
-@Composable
-private fun GameOverlay(
-    title: String,
-    subtitle: String,
-    score: Int,
-    bestScore: Int,
-    maxTile: Int,
-    primaryLabel: String,
-    onPrimary: () -> Unit,
-    secondaryLabel: String?,
-    onSecondary: (() -> Unit)?,
-    highlight: Color
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xCCFAF8EF))
-            .clip(RoundedCornerShape(16.dp))
-            .padding(24.dp),
+    // Flexible region between header and footer. The game board is a square that
+    // fits entirely within the remaining width/height, centered when there is slack,
+    // so it never overflows on small, tall, or landscape screens.
+    BoxWithConstraints(
+        modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier
-                .shadow(12.dp, RoundedCornerShape(20.dp))
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFFFFFFF))
-                .padding(horizontal = 28.dp, vertical = 26.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = title,
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Black,
-                color = GameColors.HeaderText
+        val boardSize = minOf(maxWidth, maxHeight)
+        val boardModifier = Modifier
+            .width(boardSize)
+            .height(boardSize)
+
+        Box(modifier = boardModifier) {
+            SwipeableGameBoard(
+                board = board,
+                onSwipe = onSwipe,
+                onNewGame = onNewGame,
+                modifier = Modifier.fillMaxSize()
             )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = subtitle,
-                fontSize = 14.sp,
-                color = GameColors.SubText,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(20.dp))
 
-            Column(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(GameColors.ScoreBlockBackground)
-                    .padding(horizontal = 32.dp, vertical = 10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Win overlay
+            AnimatedVisibility(
+                visible = showWin,
+                enter = fadeIn(tween(200)),
+                exit = fadeOut(tween(200))
             ) {
-                Text(
-                    text = "SCORE",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    color = GameColors.ScoreLabel
-                )
-                Text(
-                    text = score.toString(),
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Black,
-                    color = Color.White
+                GameOverlay(
+                    title = "You win!",
+                    subtitle = "You made the 2048 tile!",
+                    score = score,
+                    bestScore = bestScore,
+                    maxTile = maxTile,
+                    primaryLabel = "Play again",
+                    onPrimary = onNewGame,
+                    secondaryLabel = "Keep going",
+                    onSecondary = onContinue,
+                    highlight = GameColors.Tile2048
                 )
             }
 
-            Spacer(modifier = Modifier.height(14.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                OverlayStat(label = "BEST", value = bestScore.toString())
-                OverlayStat(label = "MAX", value = if (maxTile == 0) "\u2014" else maxTile.toString(), accent = GameColors.Tile2048)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = onPrimary,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = highlight
-                ),
-                shape = RoundedCornerShape(14.dp),
-                contentPadding = PaddingValues(horizontal = 32.dp, vertical = 12.dp)
+            // Game over overlay
+            AnimatedVisibility(
+                visible = isGameOver,
+                enter = fadeIn(tween(200)),
+                exit = fadeOut(tween(200))
             ) {
-                Text(
-                    text = primaryLabel.uppercase(),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.5.sp,
-                    color = Color.White
+                GameOverlay(
+                    title = "Game over",
+                    subtitle = "Board is full.",
+                    score = score,
+                    bestScore = bestScore,
+                    maxTile = maxTile,
+                    primaryLabel = "Try again",
+                    onPrimary = onNewGame,
+                    secondaryLabel = null,
+                    onSecondary = null,
+                    highlight = GameColors.ButtonBackground
                 )
-            }
-
-            if (secondaryLabel != null && onSecondary != null) {
-                Spacer(modifier = Modifier.height(8.dp))
-                TextButton(
-                    onClick = onSecondary
-                ) {
-                    Text(
-                        text = secondaryLabel,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = GameColors.SubText
-                    )
-                }
             }
         }
-    }
-}
-
-@Composable
-private fun OverlayStat(
-    label: String,
-    value: String,
-    accent: Color = GameColors.SubText
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            color = GameColors.SubText
-        )
-        Text(
-            text = value,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Black,
-            color = accent
-        )
-    }
-}
-
-@Composable
-private fun ScoreBlock(
-    label: String,
-    value: Int
-) {
-    Column(
-        modifier = Modifier
-            .shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x33000000))
-            .clip(RoundedCornerShape(10.dp))
-            .background(GameColors.ScoreBlockBackground)
-            .padding(horizontal = 14.dp, vertical = 7.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = label,
-            fontSize = 11.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
-            color = GameColors.ScoreLabel
-        )
-        AnimatedContent(
-            targetState = value,
-            transitionSpec = {
-                (scaleIn(initialScale = 0.8f, animationSpec = spring(dampingRatio = 0.5f)) + fadeIn(tween(200))) togetherWith
-                    (fadeOut(tween(100)))
-            },
-            label = "score"
-        ) { target ->
-            Text(
-                text = target.toString(),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Black,
-                color = Color.White
-            )
-        }
-    }
-}
-
-@Composable
-private fun UndoButton(
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = GameColors.ButtonBackground.copy(alpha = if (enabled) 1f else 0.4f),
-            disabledContainerColor = GameColors.ButtonBackground.copy(alpha = 0.3f)
-        ),
-        shape = RoundedCornerShape(12.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 3.dp,
-            pressedElevation = 1.dp
-        )
-    ) {
-        Text(
-            text = "\u21A9 UNDO",
-            fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.5.sp,
-            color = Color.White
-        )
-    }
-}
-
-@Composable
-private fun NewGameButton(
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = GameColors.ButtonBackground
-        ),
-        shape = RoundedCornerShape(12.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 3.dp,
-            pressedElevation = 1.dp
-        )
-    ) {
-        Text(
-            text = "NEW GAME",
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.5.sp,
-            color = Color.White
-        )
     }
 }

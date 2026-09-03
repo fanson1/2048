@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.finley.android.merge2048.domain.Direction
 import kotlin.math.abs
 
 private const val SWIPE_THRESHOLD_DP = 20f

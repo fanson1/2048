@@ -5,6 +5,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
+import com.finley.android.merge2048.domain.Direction
+import com.finley.android.merge2048.domain.GameEngine
 
 class SharedCommonTest {
 

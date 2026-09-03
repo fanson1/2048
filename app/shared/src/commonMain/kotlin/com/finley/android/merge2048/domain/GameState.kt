@@ -1,5 +1,6 @@
-package com.finley.android.merge2048
+package com.finley.android.merge2048.domain
 
+/** Immutable snapshot of the game presented to the UI. */
 data class GameState(
     val board: List<List<Int>> = List(4) { List(4) { 0 } },
     val score: Int = 0,
@@ -11,11 +12,3 @@ data class GameState(
     val canUndo: Boolean = false,
     val moveCount: Int = 0
 )
-
-sealed class GameIntent {
-    data class Move(val direction: Direction) : GameIntent()
-    data object NewGame : GameIntent()
-    data object DismissWinDialog : GameIntent()
-    data object ContinueAfterWin : GameIntent()
-    data object Undo : GameIntent()
-}

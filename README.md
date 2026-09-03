@@ -1,54 +1,99 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop (JVM), Server.
+# Merge2048
 
-* [/app/iosApp](./app/iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+A cross-platform **2048** puzzle game built with Kotlin Multiplatform + Compose Multiplatform (Material 3). Designed to feel and look like a polished, commercial-grade casual game.
 
-* [/app/shared](./app/shared/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./app/shared/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./app/shared/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./app/shared/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## Platform support
 
-* [/core](./core/src) is for the code that will be shared between all targets in the project.
-  The most important subfolder is [commonMain](./core/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+| Platform | Status |
+|----------|--------|
+| Android | ✅ |
+| iOS | ✅ |
+| Desktop (JVM) | ✅ |
+| Web (Wasm + JS) | ✅ |
+| Server (Ktor) | ✅ |
 
-* [/server](./server/src/main/kotlin) is for the Ktor server application.
+## Features
 
-### Running the apps
+**Gameplay**
+- Classic 4x4 2048 rules with a full MVI state machine
+- **Undo** — step back one full move (`UNDO` button, only active when available)
+- Score + **Best score** tracking (kept across games in the same session)
+- **MAX** tile and **MOVES** live stats
+- Win / Game-over overlays with full round summary (Score, Best, Max)
+- Full keyboard support on desktop/web: **arrow keys / WASD** to move, **R** to restart
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+**Visual & interaction polish**
+- Warm, classic 2048 color palette with premium gradients
+- Tile pop-in + merge pop animations
+- Direction-aware board slide animation on each move
+- Golden glow on high-value tiles (256+)
+- Animated score cards
+- Responsive layout: content capped at 480dp, auto-adapts to landscape/short screens (compact header, progressive UI degradation), board scales to fit available space without overflow
 
-- Android app: `./gradlew :app:androidApp:assembleDebug`
-- Desktop app:
+**App icon**
+- Custom-designed icon on every platform: Android adaptive + legacy mipmaps, iOS AppIcon, Desktop window/package icon, Web favicon
+
+## Architecture
+
+Strict layered MVI split into clean packages:
+
+```
+com.finley.android.merge2048
+├── domain/             # Pure Kotlin game logic — zero Compose/Android deps, JVM-testable
+│   ├── Direction.kt        # move direction enum
+│   ├── GameState.kt        # immutable game snapshot
+│   ├── GameIntent.kt       # user actions (sealed class)
+│   ├── GameEngine.kt       # game rules (board, moves, merges, undo, win/game-over)
+│   └── GameReducer.kt      # ★ MVI heart: Intent → State reducer (owns best/win bookkeeping)
+├── presentation/
+│   └── GameViewModel.kt    # thin shell: holds StateFlow, forwards intents to the reducer
+├── ui/
+│   └── GameComponents.kt   # reusable design-system composables (score, stats, buttons, overlays)
+├── GameScreen.kt           # screen assembly layer (no business logic)
+├── SwipeableGameBoard.kt   # board grid + gesture/keyboard handling
+├── GameTheme.kt            # color & typography tokens
+└── App.kt
+```
+
+### Why a reducer?
+
+All game behavior (move scoring, best-score tracking, win-dialog gating, undo bookkeeping,
+state derivation) lives in the pure `domain/GameReducer`. The `GameViewModel` becomes a
+passive shell, and every state transition can be unit-tested on the JVM without Android
+or Compose dependencies.
+
+## Project layout
+
+- `app/androidApp/` — Android entry point + launcher resources
+- `app/iosApp/` — iOS entry point + AppIcon assets
+- `app/desktopApp/` — Desktop (JVM) entry point + window/package icon
+- `app/webApp/` — Web entry point + favicon
+- `app/shared/` — shared Compose Multiplatform UI and domain code
+- `core/` — code shared by all targets
+- `server/` — Ktor server application
+
+## Running the apps
+
+- Android: `./gradlew :app:androidApp:assembleDebug`
+- Desktop:
   - Hot reload: `./gradlew :app:desktopApp:hotRun --auto`
   - Standard run: `./gradlew :app:desktopApp:run`
+- Web:
+  - Wasm (faster, modern browsers): `./gradlew :app:webApp:wasmJsBrowserDevelopmentRun`
+  - JS (older browser support): `./gradlew :app:webApp:jsBrowserDevelopmentRun`
+- iOS: open `app/iosApp` in Xcode and run from there
 - Server: `./gradlew :server:run`
-- Web app:
-  - Wasm target (faster, modern browsers): `./gradlew :app:webApp:wasmJsBrowserDevelopmentRun`
-  - JS target (slower, supports older browsers): `./gradlew :app:webApp:jsBrowserDevelopmentRun`
-- iOS app: open the [/app/iosApp](./app/iosApp) directory in Xcode and run it from there.
 
-### Running tests
+## Running tests
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
-
-- Android tests: `./gradlew :app:shared:testAndroidHostTest`
-- Desktop tests: `./gradlew :app:shared:jvmTest`
-- Server tests: `./gradlew :server:test`
-- Web tests:
-  - Wasm target: `./gradlew :app:shared:wasmJsTest`
-  - JS target: `./gradlew :app:shared:jsTest`
-- iOS tests: `./gradlew :app:shared:iosSimulatorArm64Test`
+- Shared tests (JVM): `./gradlew :app:shared:jvmTest`
+- Android host tests: `./gradlew :app:shared:testAndroidHostTest`
+- Web: `./gradlew :app:shared:jsTest` / `./gradlew :app:shared:wasmJsTest`
+- iOS: `./gradlew :app:shared:iosSimulatorArm64Test`
+- Server: `./gradlew :server:test`
 
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
-
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [YouTrack](https://youtrack.jetbrains.com/newIssue?project=CMP).
+[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform), and
+[Kotlin/Wasm](https://kotl.in/wasm/).
