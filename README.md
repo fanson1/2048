@@ -46,7 +46,8 @@ com.finley.android.merge2048
 │   ├── GameEngine.kt       # game rules (board, moves, merges, undo, win/game-over)
 │   └── GameReducer.kt      # ★ MVI heart: Intent → State reducer (owns best/win bookkeeping)
 ├── presentation/
-│   └── GameViewModel.kt    # thin shell: holds StateFlow, forwards intents to the reducer
+│   ├── GameViewModel.kt    # thin shell: holds StateFlow, forwards intents to the reducer
+│   └── GameViewModelFactory.kt # expect/actual ViewModel retrieval (Android real ViewModel, others construct directly)
 ├── ui/
 │   └── GameComponents.kt   # reusable design-system composables (score, stats, buttons, overlays)
 ├── GameScreen.kt           # screen assembly layer (no business logic)

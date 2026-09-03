@@ -16,11 +16,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.finley.android.merge2048.domain.Direction
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.presentation.GameViewModel
+import com.finley.android.merge2048.presentation.rememberGameViewModel
 import com.finley.android.merge2048.ui.GameOverlay
 import com.finley.android.merge2048.ui.NewGameButton
 import com.finley.android.merge2048.ui.ScoreBlock
@@ -32,7 +32,7 @@ import com.finley.android.merge2048.ui.UndoButton
  * and wires them to the [GameViewModel]. It holds no game logic.
  */
 @Composable
-fun GameScreen(viewModel: GameViewModel = viewModel()) {
+fun GameScreen(viewModel: GameViewModel = rememberGameViewModel()) {
     val state by viewModel.state.collectAsState()
 
     GameContent(
