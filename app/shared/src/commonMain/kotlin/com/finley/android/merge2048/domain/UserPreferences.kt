@@ -22,7 +22,8 @@ data class UserPreferences(
     val darkMode: Boolean = false,
     val boardSize: Int = 4,
     val hasSeenTutorial: Boolean = false,
-    val unlockedAchievementIds: Set<String> = emptySet()
+    val unlockedAchievementIds: Set<String> = emptySet(),
+    val themeId: String = "classic"
 ) {
     companion object {
         val Default = UserPreferences()

@@ -1,6 +1,11 @@
 package com.finley.android.merge2048.ui
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -20,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -302,5 +308,42 @@ fun GameOverlay(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ComboBadge(
+    count: Int,
+    multiplier: Float
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "combo-pulse")
+    val scaleState = infiniteTransition.animateFloat(
+        initialValue = 0.95f,
+        targetValue = 1.05f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(500, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "combo-scale"
+    )
+    val scale = scaleState.value
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(GameColors.Tile2048)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "x$count",
+            fontSize = 11.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White
+        )
     }
 }

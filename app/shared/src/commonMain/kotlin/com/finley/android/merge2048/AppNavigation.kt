@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameState
+import com.finley.android.merge2048.domain.GameTheme
 import com.finley.android.merge2048.domain.LifetimeStats
 import com.finley.android.merge2048.domain.UserPreferences
 import com.finley.android.merge2048.presentation.GameViewModel
@@ -30,9 +31,11 @@ fun AppNavigation(viewModel: GameViewModel) {
     var screen by remember { mutableStateOf(GameScreen.GAME) }
 
     // Apply dark mode whenever prefs change.
-    ProvideGameColors(darkMode = prefs.darkMode) {
+    ProvideGameColors(darkMode = prefs.darkMode, themeId = prefs.themeId) {
         // Re-apply on change.
-        LaunchedEffect(prefs.darkMode) { GameColors.apply(prefs.darkMode) }
+        LaunchedEffect(prefs.darkMode, prefs.themeId) {
+            GameColors.apply(GameTheme.byId(prefs.themeId))
+        }
 
         Box(modifier = Modifier.fillMaxSize()) {
             when (screen) {

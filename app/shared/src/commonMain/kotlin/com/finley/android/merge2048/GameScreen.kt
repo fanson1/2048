@@ -27,6 +27,11 @@ import com.finley.android.merge2048.ui.NewGameButton
 import com.finley.android.merge2048.ui.ScoreBlock
 import com.finley.android.merge2048.ui.StatPill
 import com.finley.android.merge2048.ui.UndoButton
+import com.finley.android.merge2048.ui.ComboBadge
+import com.finley.android.merge2048.ui.ConfettiCelebration
+import com.finley.android.merge2048.ui.GameOverSummary
+import com.finley.android.merge2048.ui.MergePopups
+import com.finley.android.merge2048.ui.TileProgressBar
 import com.finley.android.merge2048.ui.FloatingScore
 
 /**
@@ -87,6 +92,8 @@ internal fun GameContent(
                 bestScore = state.bestScore,
                 maxTile = state.maxTile,
                 moveCount = state.moveCount,
+                comboCount = state.comboCount,
+                comboMultiplier = state.comboMultiplier,
                 titleFont = titleFont,
                 compact = compact
             )
@@ -164,7 +171,13 @@ internal fun GameContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                lastMergePoints = state.lastMergePoints
+                lastMergePoints = state.lastMergePoints,
+                lastMergePositions = state.lastMergePositions,
+                comboCount = state.comboCount,
+                boardSize = state.boardSize,
+                moveCount = state.moveCount,
+                totalMerges = state.totalMerges,
+                isNewBest = state.score >= state.bestScore && state.score > 0
             )
 
             // ---------- Footer ----------
@@ -196,6 +209,8 @@ private fun Header(
     bestScore: Int,
     maxTile: Int,
     moveCount: Int,
+    comboCount: Int,
+    comboMultiplier: Float,
     titleFont: TextUnit,
     compact: Boolean
 ) {
@@ -223,6 +238,19 @@ private fun Header(
                     label = "MOVES",
                     value = moveCount.toString(),
                     accent = GameColors.SubText
+                )
+                if (comboCount > 1) {
+                    Spacer(modifier = Modifier.width(if (compact) 8.dp else 12.dp))
+                    ComboBadge(count = comboCount, multiplier = comboMultiplier)
+                }
+            }
+
+            // Progress bar to next tile
+            if (!compact && maxTile > 0) {
+                Spacer(modifier = Modifier.height(6.dp))
+                TileProgressBar(
+                    maxTile = maxTile,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -254,7 +282,13 @@ private fun BoardAndOverlays(
     onNewGame: () -> Unit,
     onContinue: () -> Unit,
     modifier: Modifier = Modifier,
-    lastMergePoints: Int = 0
+    lastMergePoints: Int = 0,
+    lastMergePositions: List<Triple<Int, Int, Int>> = emptyList(),
+    comboCount: Int = 0,
+    boardSize: Int = 4,
+    moveCount: Int = 0,
+    totalMerges: Int = 0,
+    isNewBest: Boolean = false
 ) {
     // Flexible region between header and footer. The game board is a square that
     // fits entirely within the remaining width/height, centered when there is slack,
@@ -263,10 +297,10 @@ private fun BoardAndOverlays(
         modifier = modifier,
         contentAlignment = Alignment.Center
     ) {
-        val boardSize = minOf(maxWidth, maxHeight)
+        val boardDim = minOf(maxWidth, maxHeight)
         val boardModifier = Modifier
-            .width(boardSize)
-            .height(boardSize)
+            .width(boardDim)
+            .height(boardDim)
 
         Box(modifier = boardModifier) {
             SwipeableGameBoard(
@@ -276,15 +310,22 @@ private fun BoardAndOverlays(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Floating score pop
-            FloatingScore(
-                points = lastMergePoints,
+            // Merge position popups with combo indicator
+            MergePopups(
+                mergePositions = lastMergePositions,
+                comboCount = comboCount,
+                boardSize = boardSize,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(top = 16.dp)
             )
 
-            // Win overlay
+            // Win overlay with confetti
+            ConfettiCelebration(
+                visible = showWin,
+                modifier = Modifier.fillMaxSize()
+            )
+
             AnimatedVisibility(
                 visible = showWin,
                 enter = fadeIn(tween(200)),
@@ -304,25 +345,18 @@ private fun BoardAndOverlays(
                 )
             }
 
-            // Game over overlay
-            AnimatedVisibility(
+            // Game over overlay with enhanced summary
+            GameOverSummary(
                 visible = isGameOver,
-                enter = fadeIn(tween(200)),
-                exit = fadeOut(tween(200))
-            ) {
-                GameOverlay(
-                    title = "Game over",
-                    subtitle = "Board is full.",
-                    score = score,
-                    bestScore = bestScore,
-                    maxTile = maxTile,
-                    primaryLabel = "Try again",
-                    onPrimary = onNewGame,
-                    secondaryLabel = null,
-                    onSecondary = null,
-                    highlight = GameColors.ButtonBackground
-                )
-            }
+                score = score,
+                bestScore = bestScore,
+                maxTile = maxTile,
+                moveCount = moveCount,
+                totalMerges = totalMerges,
+                isNewBest = isNewBest,
+                onNewGame = onNewGame,
+                onDismiss = onNewGame
+            )
         }
     }
 }

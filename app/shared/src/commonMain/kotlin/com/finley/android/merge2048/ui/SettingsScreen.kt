@@ -76,6 +76,24 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // ---- Theme ----
+        SettingSection("THEME") {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                com.finley.android.merge2048.domain.GameTheme.all.forEach { theme ->
+                    val unlocked = theme.isUnlocked(prefs.gamesPlayed, prefs.bestMaxTile)
+                    SelectableRow(
+                        label = theme.displayName,
+                        subtitle = if (unlocked) theme.unlockRequirement else "Locked: ${theme.unlockRequirement}",
+                        selected = prefs.themeId == theme.id,
+                        enabled = unlocked,
+                        onClick = { if (unlocked) onUpdate(prefs.copy(themeId = theme.id)) }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         // ---- Animation Level ----
         SettingSection("ANIMATION") {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -279,6 +297,7 @@ private fun SelectableRow(
     label: String,
     subtitle: String,
     selected: Boolean,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Row(
@@ -286,7 +305,8 @@ private fun SelectableRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
             .background(
-                if (selected) GameColors.ButtonBackground.copy(alpha = 0.15f)
+                if (!enabled) GameColors.ScoreBlockBackground.copy(alpha = 0.15f)
+                else if (selected) GameColors.ButtonBackground.copy(alpha = 0.15f)
                 else GameColors.ScoreBlockBackground.copy(alpha = 0.3f)
             )
             .border(
@@ -294,7 +314,7 @@ private fun SelectableRow(
                 color = if (selected) GameColors.ButtonBackground else Color.Transparent,
                 shape = RoundedCornerShape(10.dp)
             )
-            .clickable { onClick() }
+            .clickable(enabled = enabled) { onClick() }
             .padding(horizontal = 14.dp, vertical = 12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically

@@ -26,6 +26,22 @@ class GameEngine(val boardSize: Int = 4) {
     var lastMoveMergeCount: Int = 0
         private set
 
+    /** Consecutive moves that produced merges (resets on a non-merge move). */
+    var comboCount: Int = 0
+        private set
+
+    /** Highest combo achieved in the current game. */
+    var maxComboThisGame: Int = 0
+        private set
+
+    /** Score multiplier derived from current combo (1.0 = no bonus, up to 4.0). */
+    val comboMultiplier: Float
+        get() = (1f + comboCount * 0.1f).coerceAtMost(4f)
+
+    /** Merge positions from the last move (row, col, merged value) for UI popups. */
+    var lastMergePositions: List<Triple<Int, Int, Int>> = emptyList()
+        private set
+
     /** Whether the player has used Undo at any point in the current game. */
     var hasUsedUndo: Boolean = false
         private set
@@ -56,6 +72,15 @@ class GameEngine(val boardSize: Int = 4) {
         val score: Int
     )
 
+    /** Tracks where merges occur during a single move for UI popup positioning. */
+    private class MergePositionTracker {
+        val positions = mutableListOf<Triple<Int, Int, Int>>() // row, col, value
+
+        fun add(row: Int, col: Int, value: Int) {
+            positions.add(Triple(row, col, value))
+        }
+    }
+
     private val history: ArrayDeque<HistoryFrame> = ArrayDeque()
 
     val canUndo: Boolean
@@ -74,6 +99,9 @@ class GameEngine(val boardSize: Int = 4) {
         lastMoveScore = 0
         lastMoveMergeCount = 0
         totalMergesThisGame = 0
+        comboCount = 0
+        maxComboThisGame = 0
+        lastMergePositions = emptyList()
         hasUsedUndo = false
         isGameOver = false
         hasWon = false
@@ -97,6 +125,8 @@ class GameEngine(val boardSize: Int = 4) {
         score = frame.score
         moveCount = (moveCount - 1).coerceAtLeast(0)
         lastMoveScore = 0
+        lastMergePositions = emptyList()
+        comboCount = 0
         hasUsedUndo = true
         // Recompute verdicts from restored board
         hasWon = board.any { row -> row.any { it == WIN_VALUE } }
@@ -128,12 +158,15 @@ class GameEngine(val boardSize: Int = 4) {
         val previousBoard = Array(boardSize) { board[it].copyOf() }
         val previousScore = score
         lastMoveMergeCount = 0
+        lastMergePositions = emptyList()
+
+        val mergeTracker = MergePositionTracker()
 
         when (direction) {
-            Direction.LEFT -> moveLeft()
-            Direction.RIGHT -> moveRight()
-            Direction.UP -> moveUp()
-            Direction.DOWN -> moveDown()
+            Direction.LEFT -> moveLeft(mergeTracker)
+            Direction.RIGHT -> moveRight(mergeTracker)
+            Direction.UP -> moveUp(mergeTracker)
+            Direction.DOWN -> moveDown(mergeTracker)
         }
 
         val moved = !board.contentDeepEquals(previousBoard)
@@ -144,7 +177,28 @@ class GameEngine(val boardSize: Int = 4) {
             history.addLast(HistoryFrame(previousBoard, previousScore))
             if (history.size > MAX_HISTORY) history.removeFirst()
             moveCount++
-            lastMoveScore = score - previousScore
+
+            val rawMergeScore = score - previousScore
+            lastMoveScore = if (lastMoveMergeCount > 0) {
+                // Apply combo multiplier
+                (rawMergeScore * comboMultiplier).toInt()
+            } else {
+                rawMergeScore
+            }
+            // Adjust total score if combo applied
+            if (lastMoveScore != rawMergeScore) {
+                score = previousScore + lastMoveScore
+            }
+
+            // Update combo: if merges happened, increment; otherwise reset
+            if (lastMoveMergeCount > 0) {
+                comboCount++
+                maxComboThisGame = maxOf(maxComboThisGame, comboCount)
+            } else {
+                comboCount = 0
+            }
+
+            lastMergePositions = mergeTracker.positions
             scoreHistory.add(score)
             addRandomTile()
         } else {
@@ -156,20 +210,20 @@ class GameEngine(val boardSize: Int = 4) {
         return moved
     }
 
-    private fun moveLeft() {
+    private fun moveLeft(mergeTracker: MergePositionTracker) {
         for (i in 0 until boardSize) {
             val row = board[i].filter { it != 0 }.toMutableList()
-            val mergedRow = mergeRow(row)
+            val mergedRow = mergeRow(row, mergeTracker, i, isHorizontal = true)
             board[i] = IntArray(boardSize) { index ->
                 if (index < mergedRow.size) mergedRow[index] else 0
             }
         }
     }
 
-    private fun moveRight() {
+    private fun moveRight(mergeTracker: MergePositionTracker) {
         for (i in 0 until boardSize) {
             val row = board[i].filter { it != 0 }.reversed().toMutableList()
-            val mergedRow = mergeRow(row)
+            val mergedRow = mergeRow(row, mergeTracker, i, isHorizontal = true)
             board[i] = IntArray(boardSize) { index ->
                 val fromRight = boardSize - 1 - index
                 if (fromRight < mergedRow.size) mergedRow[fromRight] else 0
@@ -177,7 +231,7 @@ class GameEngine(val boardSize: Int = 4) {
         }
     }
 
-    private fun moveUp() {
+    private fun moveUp(mergeTracker: MergePositionTracker) {
         for (j in 0 until boardSize) {
             val column = mutableListOf<Int>()
             for (i in 0 until boardSize) {
@@ -185,14 +239,14 @@ class GameEngine(val boardSize: Int = 4) {
                     column.add(board[i][j])
                 }
             }
-            val mergedColumn = mergeRow(column)
+            val mergedColumn = mergeRow(column, mergeTracker, j, isHorizontal = false)
             for (i in 0 until boardSize) {
                 board[i][j] = if (i < mergedColumn.size) mergedColumn[i] else 0
             }
         }
     }
 
-    private fun moveDown() {
+    private fun moveDown(mergeTracker: MergePositionTracker) {
         for (j in 0 until boardSize) {
             val column = mutableListOf<Int>()
             for (i in 0 until boardSize) {
@@ -200,7 +254,7 @@ class GameEngine(val boardSize: Int = 4) {
                     column.add(board[i][j])
                 }
             }
-            val mergedColumn = mergeRow(column.reversed().toMutableList())
+            val mergedColumn = mergeRow(column.reversed().toMutableList(), mergeTracker, j, isHorizontal = false)
             for (i in 0 until boardSize) {
                 val fromBottom = boardSize - 1 - i
                 board[i][j] = if (fromBottom < mergedColumn.size) mergedColumn[fromBottom] else 0
@@ -208,8 +262,14 @@ class GameEngine(val boardSize: Int = 4) {
         }
     }
 
-    private fun mergeRow(row: MutableList<Int>): MutableList<Int> {
+    private fun mergeRow(
+        row: MutableList<Int>,
+        mergeTracker: MergePositionTracker,
+        lineIndex: Int,
+        isHorizontal: Boolean
+    ): MutableList<Int> {
         val merged = mutableListOf<Int>()
+        var origPos = 0 // tracks position in the original filtered list
         var i = 0
         while (i < row.size) {
             if (i + 1 < row.size && row[i] == row[i + 1]) {
@@ -218,11 +278,21 @@ class GameEngine(val boardSize: Int = 4) {
                 score += mergedValue
                 lastMoveMergeCount += 1
                 totalMergesThisGame += 1
+
+                // Record merge position in the original grid
+                val pos = merged.size - 1
+                if (isHorizontal) {
+                    mergeTracker.add(lineIndex, pos, mergedValue)
+                } else {
+                    mergeTracker.add(pos, lineIndex, mergedValue)
+                }
+
                 i += 2
             } else {
                 merged.add(row[i])
                 i++
             }
+            origPos++
         }
         return merged
     }
@@ -266,6 +336,9 @@ class GameEngine(val boardSize: Int = 4) {
         lastMoveScore = 0
         lastMoveMergeCount = 0
         totalMergesThisGame = 0
+        comboCount = 0
+        maxComboThisGame = 0
+        lastMergePositions = emptyList()
         hasUsedUndo = false
         isGameOver = false
         hasWon = false

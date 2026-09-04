@@ -168,7 +168,11 @@ class GameReducer(
             boardSize = engine.boardSize,
             user = prefs,
             pendingAchievementId = pendingAchievements.firstOrNull()?.id,
-            lastMergePoints = engine.lastMoveScore
+            lastMergePoints = engine.lastMoveScore,
+            comboCount = engine.comboCount,
+            comboMultiplier = engine.comboMultiplier,
+            lastMergePositions = engine.lastMergePositions,
+            totalMerges = engine.totalMergesThisGame
         )
     }
 

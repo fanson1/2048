@@ -21,5 +21,10 @@ data class GameState(
     val user: UserPreferences = UserPreferences.Default,
     /** One-shot event consumed by the UI. */
     val pendingAchievementId: String? = null,
-    val lastMergePoints: Int = 0
+    val lastMergePoints: Int = 0,
+    val comboCount: Int = 0,
+    val comboMultiplier: Float = 1f,
+    /** Merge positions from the last move: Triple(row, col, mergedValue). */
+    val lastMergePositions: List<Triple<Int, Int, Int>> = emptyList(),
+    val totalMerges: Int = 0
 )
