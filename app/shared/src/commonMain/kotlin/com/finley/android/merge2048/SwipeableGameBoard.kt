@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +41,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -153,49 +156,51 @@ fun SwipeableGameBoard(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                for (row in targetBoard) {
+                for ((rowIdx, row) in targetBoard.withIndex()) {
                     Row(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        for (cell in row) {
-                            GameTile(
-                                value = cell,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .shadow(2.dp, RoundedCornerShape(8.dp), spotColor = Color(0x33000000))
-                            )
-        }
+                        for ((cellIdx, cell) in row.withIndex()) {
+                            key("tile-$rowIdx-$cellIdx-$cell") {
+                                GameTile(
+                                    value = cell,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .shadow(2.dp, RoundedCornerShape(8.dp), spotColor = Color(0x33000000))
+                                )
+                            }
+                        }
+                    }
+                }
 
-        // Gesture guide: pulsing "Swipe to play" that fades after first move
-        if (!hasSwiped) {
-            val infiniteTransition = rememberInfiniteTransition(label = "guide")
-            val alpha by infiniteTransition.animateFloat(
-                initialValue = 0.4f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "guide-pulse"
-            )
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Swipe to play",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = GameColors.HeaderText.copy(alpha = alpha * 0.6f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
-    }
-}
+                // Gesture guide: pulsing "Swipe to play" that fades after first move
+                if (!hasSwiped) {
+                    val infiniteTransition = rememberInfiniteTransition(label = "guide")
+                    val alpha by infiniteTransition.animateFloat(
+                        initialValue = 0.4f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(1000, easing = LinearEasing),
+                            repeatMode = RepeatMode.Reverse
+                        ),
+                        label = "guide-pulse"
+                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Swipe to play",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = GameColors.HeaderText.copy(alpha = alpha * 0.6f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
             }
         }
     }
@@ -236,7 +241,10 @@ fun GameTile(
     Box(
         modifier = baseModifier
             .clip(RoundedCornerShape(8.dp))
-            .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value)),
+            .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value))
+            .semantics {
+                contentDescription = if (value == 0) "empty" else "Tile $value"
+            },
         contentAlignment = Alignment.Center
     ) {
         AnimatedContent(

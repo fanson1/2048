@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.finley.android.merge2048.data.GameHistoryRepository
 import com.finley.android.merge2048.data.GameRepository
 import com.finley.android.merge2048.data.SettingsRepository
 import com.finley.android.merge2048.data.createSoundService
@@ -15,6 +16,7 @@ actual fun rememberGameViewModel(): GameViewModel = viewModel(
             GameViewModel(
                 settingsRepository = SettingsRepository(),
                 gameRepository = GameRepository(),
+                historyRepository = GameHistoryRepository(),
                 soundService = createSoundService()
             )
         }

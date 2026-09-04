@@ -2,11 +2,13 @@ package com.finley.android.merge2048.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.finley.android.merge2048.data.GameHistoryRepository
 import com.finley.android.merge2048.data.GameRepository
 import com.finley.android.merge2048.data.SettingsRepository
 import com.finley.android.merge2048.data.SoundEvent
 import com.finley.android.merge2048.data.SoundService
 import com.finley.android.merge2048.domain.GameIntent
+import com.finley.android.merge2048.domain.GameRecord
 import com.finley.android.merge2048.domain.GameSnapshot
 import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.domain.UserPreferences
@@ -21,21 +23,29 @@ import kotlinx.coroutines.launch
 /**
  * Thin MVI shell: holds the [GameState] flow, forwards [GameIntent]s to the
  * [com.finley.android.merge2048.domain.GameReducer], and persists the
- * in-progress game and the user's [UserPreferences] across launches.
+ * in-progress game, the user's [UserPreferences], and a rolling history of
+ * finished games across launches.
  */
 class GameViewModel(
     private val settingsRepository: SettingsRepository,
     private val gameRepository: GameRepository,
+    private val historyRepository: GameHistoryRepository,
     private val soundService: SoundService
 ) : ViewModel() {
 
-    private val reducer = com.finley.android.merge2048.domain.GameReducer()
+    private val reducer = com.finley.android.merge2048.domain.GameReducer(
+        onGameOver = { record -> historyRepository.append(record) }
+    )
     private val _state = MutableStateFlow(initialState())
     val state: StateFlow<GameState> = _state.asStateFlow()
 
     /** Public read-only view of the user's preferences. */
     val preferences: StateFlow<UserPreferences> = settingsRepository.flow
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsRepository.snapshot())
+
+    /** Public read-only view of the rolling finished-game history (newest first). */
+    val history: StateFlow<List<GameRecord>> = historyRepository.flow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, historyRepository.snapshot())
 
     init {
         // Persist any state changes back to the repositories.
@@ -111,5 +121,10 @@ class GameViewModel(
         val newPrefs = transform(settingsRepository.snapshot())
         settingsRepository.save(newPrefs)
         _state.update { current -> reducer.reduce(current, GameIntent.ApplyPreferences(newPrefs)) }
+    }
+
+    /** Wipe the saved game history. */
+    fun clearHistory() {
+        historyRepository.clear()
     }
 }

@@ -37,6 +37,7 @@ import com.finley.android.merge2048.ui.FloatingScore
 fun GameScreen(
     viewModel: GameViewModel = rememberGameViewModel(),
     onOpenSettings: () -> Unit = {},
+    onOpenHistory: () -> Unit = {},
     onDismissAchievement: (String) -> Unit = {}
 ) {
     val state by viewModel.state.collectAsState()
@@ -45,6 +46,7 @@ fun GameScreen(
         state = state,
         onIntent = viewModel::onIntent,
         onOpenSettings = onOpenSettings,
+        onOpenHistory = onOpenHistory,
         onDismissAchievement = onDismissAchievement
     )
 }
@@ -54,6 +56,7 @@ internal fun GameContent(
     state: GameState,
     onIntent: (GameIntent) -> Unit,
     onOpenSettings: () -> Unit = {},
+    onOpenHistory: () -> Unit = {},
     onDismissAchievement: (String) -> Unit = {}
 ) {
     BoxWithConstraints(
@@ -108,6 +111,19 @@ internal fun GameContent(
                     Spacer(modifier = Modifier.weight(1f))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // Stats chart icon
+                    Box(
+                        modifier = Modifier
+                            .clickable { onOpenHistory() }
+                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "\uD83D\uDCCA",
+                            fontSize = 18.sp,
+                            color = GameColors.SubText
+                        )
+                    }
                     // Settings gear icon
                     Box(
                         modifier = Modifier

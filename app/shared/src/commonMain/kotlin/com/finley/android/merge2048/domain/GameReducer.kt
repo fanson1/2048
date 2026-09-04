@@ -9,7 +9,8 @@ package com.finley.android.merge2048.domain
  * Android dependencies and fully unit-testable on the JVM.
  */
 class GameReducer(
-    private val achievementEngine: AchievementEngine = AchievementEngine()
+    private val achievementEngine: AchievementEngine = AchievementEngine(),
+    private val onGameOver: (GameRecord) -> Unit = {}
 ) {
     private var engine: GameEngine = GameEngine()
     private var prefs: UserPreferences = UserPreferences.Default
@@ -33,9 +34,15 @@ class GameReducer(
     private fun handleMove(previous: GameState, direction: Direction): GameState {
         val beforeMaxTile = engine.maxTile
         val beforeScore = engine.score
+        val wasGameOver = engine.isGameOver
 
         val moved = engine.move(direction)
         if (!moved && !engine.isGameOver) return previous
+
+        // Detect transition into game-over and emit a GameRecord.
+        if (!wasGameOver && engine.isGameOver) {
+            emitGameOverRecord()
+        }
 
         val winContext = if (engine.hasWon && !previous.hasWon) {
             WinContext(didWin = true, didUndo = didUseUndoThisGame, boardSize = engine.boardSize)
@@ -168,4 +175,22 @@ class GameReducer(
     internal fun seedBoardForTesting(values: List<List<Int>>) {
         engine.setBoardForTesting(values)
     }
+
+    private fun emitGameOverRecord() {
+        val record = GameRecord(
+            finishedAtMs = nowMillis(),
+            boardSize = engine.boardSize,
+            score = engine.score,
+            maxTile = engine.maxTile,
+            moveCount = engine.moveCount,
+            totalMerges = engine.totalMergesThisGame,
+            won = engine.hasWon,
+            didUndo = didUseUndoThisGame,
+            scoreOverTime = engine.scoreOverTime.takeLast(200)
+        )
+        onGameOver(record)
+    }
+
+    /** Wall-clock millis. Override in tests to make records deterministic. */
+    internal var nowMillis: () -> Long = { kotlin.time.Clock.System.now().toEpochMilliseconds() }
 }

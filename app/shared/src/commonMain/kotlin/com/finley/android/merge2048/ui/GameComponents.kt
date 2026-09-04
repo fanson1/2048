@@ -20,6 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,6 +45,10 @@ fun ScoreBlock(
             .shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x33000000))
             .clip(RoundedCornerShape(10.dp))
             .background(GameColors.ScoreBlockBackground)
+            .semantics {
+                contentDescription = "$label $value"
+                liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite
+            }
             .padding(
                 horizontal = if (compact) 10.dp else 14.dp,
                 vertical = if (compact) 4.dp else 7.dp
@@ -133,6 +140,7 @@ fun UndoButton(
     undoCount: Int = 0,
     onClick: () -> Unit
 ) {
+    val desc = if (undoCount > 0) "Undo, $undoCount remaining" else "Undo"
     Button(
         onClick = onClick,
         enabled = enabled,
@@ -145,7 +153,8 @@ fun UndoButton(
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 3.dp,
             pressedElevation = 1.dp
-        )
+        ),
+        modifier = Modifier.semantics { contentDescription = desc }
     ) {
         Text(
             text = if (undoCount > 0) "\u21A9 UNDO \u00B7$undoCount" else "\u21A9 UNDO",
@@ -171,7 +180,8 @@ fun NewGameButton(
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 3.dp,
             pressedElevation = 1.dp
-        )
+        ),
+        modifier = Modifier.semantics { contentDescription = "New Game" }
     ) {
         Text(
             text = "NEW GAME",

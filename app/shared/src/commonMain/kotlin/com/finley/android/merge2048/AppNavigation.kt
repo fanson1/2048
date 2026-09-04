@@ -12,18 +12,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameState
+import com.finley.android.merge2048.domain.LifetimeStats
 import com.finley.android.merge2048.domain.UserPreferences
 import com.finley.android.merge2048.presentation.GameViewModel
 import com.finley.android.merge2048.ui.AchievementToast
+import com.finley.android.merge2048.ui.HistoryScreen
 import com.finley.android.merge2048.ui.SettingsScreen
 import com.finley.android.merge2048.ui.TutorialOverlay
 
-enum class GameScreen { GAME, SETTINGS }
+enum class GameScreen { GAME, SETTINGS, HISTORY }
 
 @Composable
 fun AppNavigation(viewModel: GameViewModel) {
     val state by viewModel.state.collectAsState()
     val prefs by viewModel.preferences.collectAsState()
+    val records by viewModel.history.collectAsState()
     var screen by remember { mutableStateOf(GameScreen.GAME) }
 
     // Apply dark mode whenever prefs change.
@@ -38,6 +41,7 @@ fun AppNavigation(viewModel: GameViewModel) {
                         state = state,
                         onIntent = viewModel::onIntent,
                         onOpenSettings = { screen = GameScreen.SETTINGS },
+                        onOpenHistory = { screen = GameScreen.HISTORY },
                         onDismissAchievement = { id ->
                             viewModel.onIntent(GameIntent.ConsumeAchievement(id))
                         }
@@ -47,6 +51,13 @@ fun AppNavigation(viewModel: GameViewModel) {
                     SettingsScreen(
                         prefs = prefs,
                         onUpdate = { newPrefs -> viewModel.updatePreference { newPrefs } },
+                        onBack = { screen = GameScreen.GAME }
+                    )
+                }
+                GameScreen.HISTORY -> {
+                    HistoryScreen(
+                        stats = LifetimeStats.from(records),
+                        records = records,
                         onBack = { screen = GameScreen.GAME }
                     )
                 }

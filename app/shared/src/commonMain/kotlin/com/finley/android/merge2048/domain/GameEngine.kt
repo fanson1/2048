@@ -42,6 +42,15 @@ class GameEngine(val boardSize: Int = 4) {
     var moveCount: Int = 0
         private set
 
+    /** Number of merges performed across the whole current game. */
+    var totalMergesThisGame: Int = 0
+        private set
+
+    /** Running list of cumulative score at each move start (for charting). */
+    val scoreOverTime: List<Int>
+        get() = scoreHistory.toList()
+    private val scoreHistory: ArrayList<Int> = arrayListOf(0)
+
     private data class HistoryFrame(
         val board: Array<IntArray>,
         val score: Int
@@ -64,11 +73,14 @@ class GameEngine(val boardSize: Int = 4) {
         score = 0
         lastMoveScore = 0
         lastMoveMergeCount = 0
+        totalMergesThisGame = 0
         hasUsedUndo = false
         isGameOver = false
         hasWon = false
         moveCount = 0
         history.clear()
+        scoreHistory.clear()
+        scoreHistory.add(0)
         addRandomTile()
         addRandomTile()
     }
@@ -133,6 +145,7 @@ class GameEngine(val boardSize: Int = 4) {
             if (history.size > MAX_HISTORY) history.removeFirst()
             moveCount++
             lastMoveScore = score - previousScore
+            scoreHistory.add(score)
             addRandomTile()
         } else {
             lastMoveScore = 0
@@ -204,6 +217,7 @@ class GameEngine(val boardSize: Int = 4) {
                 merged.add(mergedValue)
                 score += mergedValue
                 lastMoveMergeCount += 1
+                totalMergesThisGame += 1
                 i += 2
             } else {
                 merged.add(row[i])
@@ -251,10 +265,13 @@ class GameEngine(val boardSize: Int = 4) {
         score = 0
         lastMoveScore = 0
         lastMoveMergeCount = 0
+        totalMergesThisGame = 0
         hasUsedUndo = false
         isGameOver = false
         hasWon = false
         moveCount = 0
         history.clear()
+        scoreHistory.clear()
+        scoreHistory.add(0)
     }
 }
