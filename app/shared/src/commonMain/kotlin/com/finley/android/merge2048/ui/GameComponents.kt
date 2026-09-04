@@ -130,6 +130,7 @@ fun OverlayStat(
 @Composable
 fun UndoButton(
     enabled: Boolean,
+    undoCount: Int = 0,
     onClick: () -> Unit
 ) {
     Button(
@@ -147,7 +148,7 @@ fun UndoButton(
         )
     ) {
         Text(
-            text = "\u21A9 UNDO",
+            text = if (undoCount > 0) "\u21A9 UNDO \u00B7$undoCount" else "\u21A9 UNDO",
             fontSize = 12.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,

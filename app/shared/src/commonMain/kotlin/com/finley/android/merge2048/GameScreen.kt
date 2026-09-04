@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -26,25 +27,34 @@ import com.finley.android.merge2048.ui.NewGameButton
 import com.finley.android.merge2048.ui.ScoreBlock
 import com.finley.android.merge2048.ui.StatPill
 import com.finley.android.merge2048.ui.UndoButton
+import com.finley.android.merge2048.ui.FloatingScore
 
 /**
  * Screen layer: composes the presentational building blocks ([ui] package)
  * and wires them to the [GameViewModel]. It holds no game logic.
  */
 @Composable
-fun GameScreen(viewModel: GameViewModel = rememberGameViewModel()) {
+fun GameScreen(
+    viewModel: GameViewModel = rememberGameViewModel(),
+    onOpenSettings: () -> Unit = {},
+    onDismissAchievement: (String) -> Unit = {}
+) {
     val state by viewModel.state.collectAsState()
 
     GameContent(
         state = state,
-        onIntent = viewModel::onIntent
+        onIntent = viewModel::onIntent,
+        onOpenSettings = onOpenSettings,
+        onDismissAchievement = onDismissAchievement
     )
 }
 
 @Composable
-private fun GameContent(
+internal fun GameContent(
     state: GameState,
-    onIntent: (GameIntent) -> Unit
+    onIntent: (GameIntent) -> Unit,
+    onOpenSettings: () -> Unit = {},
+    onDismissAchievement: (String) -> Unit = {}
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -97,9 +107,23 @@ private fun GameContent(
                 } else {
                     Spacer(modifier = Modifier.weight(1f))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // Settings gear icon
+                    Box(
+                        modifier = Modifier
+                            .clickable { onOpenSettings() }
+                            .padding(horizontal = 6.dp, vertical = 4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "\u2699\uFE0F",
+                            fontSize = 20.sp,
+                            color = GameColors.SubText
+                        )
+                    }
                     UndoButton(
                         enabled = state.canUndo,
+                        undoCount = state.undoCount,
                         onClick = { onIntent(GameIntent.Undo) }
                     )
                     NewGameButton(
@@ -123,7 +147,8 @@ private fun GameContent(
                 onContinue = { onIntent(GameIntent.ContinueAfterWin) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1f),
+                lastMergePoints = state.lastMergePoints
             )
 
             // ---------- Footer ----------
@@ -212,7 +237,8 @@ private fun BoardAndOverlays(
     onSwipe: (Direction) -> Unit,
     onNewGame: () -> Unit,
     onContinue: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    lastMergePoints: Int = 0
 ) {
     // Flexible region between header and footer. The game board is a square that
     // fits entirely within the remaining width/height, centered when there is slack,
@@ -232,6 +258,14 @@ private fun BoardAndOverlays(
                 onSwipe = onSwipe,
                 onNewGame = onNewGame,
                 modifier = Modifier.fillMaxSize()
+            )
+
+            // Floating score pop
+            FloatingScore(
+                points = lastMergePoints,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 16.dp)
             )
 
             // Win overlay

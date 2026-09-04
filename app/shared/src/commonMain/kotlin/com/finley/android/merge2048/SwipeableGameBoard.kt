@@ -5,6 +5,11 @@ import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
@@ -65,9 +70,11 @@ fun SwipeableGameBoard(
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     var lastDirection by remember { mutableStateOf<Direction?>(null) }
+    var hasSwiped by remember { mutableStateOf(false) }
 
     fun fire(direction: Direction) {
         lastDirection = direction
+        hasSwiped = true
         onSwipe(direction)
     }
 
@@ -160,9 +167,35 @@ fun SwipeableGameBoard(
                                     .weight(1f)
                                     .shadow(2.dp, RoundedCornerShape(8.dp), spotColor = Color(0x33000000))
                             )
-                        }
-                    }
-                }
+        }
+
+        // Gesture guide: pulsing "Swipe to play" that fades after first move
+        if (!hasSwiped) {
+            val infiniteTransition = rememberInfiniteTransition(label = "guide")
+            val alpha by infiniteTransition.animateFloat(
+                initialValue = 0.4f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "guide-pulse"
+            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Swipe to play",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GameColors.HeaderText.copy(alpha = alpha * 0.6f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
             }
         }
     }
@@ -203,7 +236,7 @@ fun GameTile(
     Box(
         modifier = baseModifier
             .clip(RoundedCornerShape(8.dp))
-            .background(GameColors.TileEmpty),
+            .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value)),
         contentAlignment = Alignment.Center
     ) {
         AnimatedContent(
