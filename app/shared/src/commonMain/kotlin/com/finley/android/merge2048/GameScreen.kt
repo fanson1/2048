@@ -6,12 +6,24 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
@@ -22,17 +34,16 @@ import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.presentation.GameViewModel
 import com.finley.android.merge2048.presentation.rememberGameViewModel
-import com.finley.android.merge2048.ui.GameOverlay
-import com.finley.android.merge2048.ui.NewGameButton
-import com.finley.android.merge2048.ui.ScoreBlock
-import com.finley.android.merge2048.ui.StatPill
-import com.finley.android.merge2048.ui.UndoButton
 import com.finley.android.merge2048.ui.ComboBadge
 import com.finley.android.merge2048.ui.ConfettiCelebration
 import com.finley.android.merge2048.ui.GameOverSummary
+import com.finley.android.merge2048.ui.GameOverlay
 import com.finley.android.merge2048.ui.MergePopups
+import com.finley.android.merge2048.ui.NewGameButton
+import com.finley.android.merge2048.ui.ScoreBlock
+import com.finley.android.merge2048.ui.StatPill
 import com.finley.android.merge2048.ui.TileProgressBar
-import com.finley.android.merge2048.ui.FloatingScore
+import com.finley.android.merge2048.ui.UndoButton
 
 /**
  * Screen layer: composes the presentational building blocks ([ui] package)
@@ -101,6 +112,7 @@ internal fun GameContent(
             Spacer(modifier = Modifier.height(headerGap))
 
             // ---------- Sub header: hint + new game ----------
+            // Compact single row: small hint text + tight button group
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -108,42 +120,21 @@ internal fun GameContent(
             ) {
                 if (hintVisible) {
                     Text(
-                        text = "HOW TO PLAY:",
-                        fontSize = 11.sp,
+                        text = "HOW TO PLAY",
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp,
+                        letterSpacing = 1.sp,
                         color = GameColors.SubText
                     )
                 } else {
                     Spacer(modifier = Modifier.weight(1f))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // Stats chart icon
-                    Box(
-                        modifier = Modifier
-                            .clickable { onOpenHistory() }
-                            .padding(horizontal = 6.dp, vertical = 4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "\uD83D\uDCCA",
-                            fontSize = 18.sp,
-                            color = GameColors.SubText
-                        )
-                    }
-                    // Settings gear icon
-                    Box(
-                        modifier = Modifier
-                            .clickable { onOpenSettings() }
-                            .padding(horizontal = 6.dp, vertical = 4.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "\u2699\uFE0F",
-                            fontSize = 20.sp,
-                            color = GameColors.SubText
-                        )
-                    }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ChartIcon(onClick = onOpenHistory)
+                    SettingsIcon(onClick = onOpenSettings)
                     UndoButton(
                         enabled = state.canUndo,
                         undoCount = state.undoCount,
@@ -168,6 +159,7 @@ internal fun GameContent(
                 onSwipe = { direction -> onIntent(GameIntent.Move(direction)) },
                 onNewGame = { onIntent(GameIntent.NewGame) },
                 onContinue = { onIntent(GameIntent.ContinueAfterWin) },
+                onDismissWin = { onIntent(GameIntent.DismissWinDialog) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -281,6 +273,7 @@ private fun BoardAndOverlays(
     onSwipe: (Direction) -> Unit,
     onNewGame: () -> Unit,
     onContinue: () -> Unit,
+    onDismissWin: () -> Unit,
     modifier: Modifier = Modifier,
     lastMergePoints: Int = 0,
     lastMergePositions: List<Triple<Int, Int, Int>> = emptyList(),
@@ -341,7 +334,8 @@ private fun BoardAndOverlays(
                     onPrimary = onNewGame,
                     secondaryLabel = "Keep going",
                     onSecondary = onContinue,
-                    highlight = GameColors.Tile2048
+                    highlight = GameColors.Tile2048,
+                    onDismiss = onDismissWin
                 )
             }
 
@@ -358,5 +352,37 @@ private fun BoardAndOverlays(
                 onDismiss = onNewGame
             )
         }
+    }
+}
+
+@Composable
+private fun ChartIcon(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "\uD83D\uDCCA",
+            fontSize = 16.sp,
+            color = GameColors.SubText
+        )
+    }
+}
+
+@Composable
+private fun SettingsIcon(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .clickable { onClick() }
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "\u2699\uFE0F",
+            fontSize = 18.sp,
+            color = GameColors.SubText
+        )
     }
 }

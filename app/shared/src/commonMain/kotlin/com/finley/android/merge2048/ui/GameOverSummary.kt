@@ -8,7 +8,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
@@ -50,9 +52,9 @@ fun GameOverSummary(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xCC000000))
                 .clip(RoundedCornerShape(16.dp))
-                .padding(24.dp),
+                .background(Color(0x99000000))
+                .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -60,7 +62,8 @@ fun GameOverSummary(
                     .shadow(16.dp, RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
                     .background(Color(0xFF1A1A2E))
-                    .padding(horizontal = 28.dp, vertical = 28.dp),
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Title
@@ -71,22 +74,22 @@ fun GameOverSummary(
                     color = if (isNewBest) GameColors.Tile2048 else Color.White
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = getEncouragementMessage(maxTile, score),
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(14.dp))
 
                 // Score card
                 Column(
                     modifier = Modifier
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(12.dp))
                         .background(Color(0xFF252540))
-                        .padding(horizontal = 36.dp, vertical = 14.dp),
+                        .padding(horizontal = 32.dp, vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -104,7 +107,7 @@ fun GameOverSummary(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(10.dp))
 
                 // Stats grid
                 Row(
@@ -116,7 +119,7 @@ fun GameOverSummary(
                     SummaryStat(label = "MOVES", value = moveCount.toString())
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
@@ -135,7 +138,7 @@ fun GameOverSummary(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Action buttons
                 Button(

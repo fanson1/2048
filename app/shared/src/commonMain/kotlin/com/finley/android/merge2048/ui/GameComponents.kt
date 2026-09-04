@@ -154,8 +154,8 @@ fun UndoButton(
             containerColor = GameColors.ButtonBackground.copy(alpha = if (enabled) 1f else 0.4f),
             disabledContainerColor = GameColors.ButtonBackground.copy(alpha = 0.3f)
         ),
-        shape = RoundedCornerShape(12.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(10.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 3.dp,
             pressedElevation = 1.dp
@@ -163,8 +163,8 @@ fun UndoButton(
         modifier = Modifier.semantics { contentDescription = desc }
     ) {
         Text(
-            text = if (undoCount > 0) "\u21A9 UNDO \u00B7$undoCount" else "\u21A9 UNDO",
-            fontSize = 12.sp,
+            text = if (undoCount > 0) "\u21A9 $undoCount" else "\u21A9",
+            fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
             color = Color.White
@@ -181,8 +181,8 @@ fun NewGameButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = GameColors.ButtonBackground
         ),
-        shape = RoundedCornerShape(12.dp),
-        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+        shape = RoundedCornerShape(10.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 3.dp,
             pressedElevation = 1.dp
@@ -190,7 +190,7 @@ fun NewGameButton(
         modifier = Modifier.semantics { contentDescription = "New Game" }
     ) {
         Text(
-            text = "NEW GAME",
+            text = "NEW",
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
@@ -210,13 +210,14 @@ fun GameOverlay(
     onPrimary: () -> Unit,
     secondaryLabel: String?,
     onSecondary: (() -> Unit)?,
-    highlight: Color
+    highlight: Color,
+    onDismiss: (() -> Unit)? = null
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xCCFAF8EF))
             .clip(RoundedCornerShape(16.dp))
+            .background(Color(0x99000000))
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -304,6 +305,20 @@ fun GameOverlay(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = GameColors.SubText
+                    )
+                }
+            }
+
+            if (onDismiss != null) {
+                Spacer(modifier = Modifier.height(4.dp))
+                TextButton(
+                    onClick = onDismiss
+                ) {
+                    Text(
+                        text = "Close",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = GameColors.SubText.copy(alpha = 0.5f)
                     )
                 }
             }
