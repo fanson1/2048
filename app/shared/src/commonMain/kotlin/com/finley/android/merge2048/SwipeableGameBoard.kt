@@ -337,58 +337,69 @@ private fun AnimatedTile(
             modifier.fillMaxSize()
         }
 
-        // --- Main tile ---
+        // --- Main tile + optional ghost tile for merge animation ---
+        // The outer Box handles layout (background, semantics) but NOT the sliding
+        // graphicsLayer.  The sliding layer is applied to a child so that the ghost
+        // tile's own graphicsLayer is independent — otherwise the two translations
+        // would stack and push the ghost far off-screen.
         Box(
             modifier = glowModifier
-                .graphicsLayer {
-                    translationX = offsetX.value * size.width
-                    translationY = offsetY.value * size.height
-                    scaleX = scale.value * scalePulse
-                    scaleY = scale.value * scalePulse
-                }
-                .clip(RoundedCornerShape(8.dp))
-                .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value))
+                .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value), RoundedCornerShape(8.dp))
                 .semantics {
                     contentDescription = if (value == 0) tileDescEmpty
                     else tileDescValue.replace("%1\$d", value.toString())
                 },
             contentAlignment = Alignment.Center
         ) {
-            if (value != 0) {
-                Text(
-                    text = value.toString(),
-                    fontSize = tileFontSize(value).sp,
-                    fontWeight = FontWeight.Bold,
-                    color = tileTextColor(value),
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
-            }
-        }
-
-        // --- Ghost tile for merge animation ---
-        if (movement is TileMovement.Merged && mergeSecondAlpha.value > 0f) {
-            val halfValue = movement.value / 2
+            // Main tile content — slides from previous position and scales on merge/spawn.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        translationX = mergeOffsetX.value * size.width
-                        translationY = mergeOffsetY.value * size.height
-                        alpha = mergeSecondAlpha.value
-                    }
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(tileBackgroundColor(halfValue)),
+                        translationX = offsetX.value * size.width
+                        translationY = offsetY.value * size.height
+                        scaleX = scale.value * scalePulse
+                        scaleY = scale.value * scalePulse
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = halfValue.toString(),
-                    fontSize = tileFontSize(halfValue).sp,
-                    fontWeight = FontWeight.Bold,
-                    color = tileTextColor(halfValue),
-                    textAlign = TextAlign.Center,
-                    maxLines = 1
-                )
+                if (value != 0) {
+                    Text(
+                        text = value.toString(),
+                        fontSize = tileFontSize(value).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = tileTextColor(value),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1
+                    )
+                }
+            }
+
+            // Ghost tile for merge animation — the second tile slides from its origin
+            // to the merge point and fades out.  Its graphicsLayer is independent of
+            // the main tile's so the two translations do NOT add up.
+            if (movement is TileMovement.Merged && mergeSecondAlpha.value > 0f) {
+                val halfValue = movement.value / 2
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            translationX = mergeOffsetX.value * size.width
+                            translationY = mergeOffsetY.value * size.height
+                            alpha = mergeSecondAlpha.value
+                        }
+                        .background(tileBackgroundColor(halfValue), RoundedCornerShape(8.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = halfValue.toString(),
+                        fontSize = tileFontSize(halfValue).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = tileTextColor(halfValue),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1
+                    )
+                }
             }
         }
     }

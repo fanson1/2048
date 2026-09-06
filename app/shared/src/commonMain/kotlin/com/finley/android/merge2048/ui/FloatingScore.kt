@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -91,24 +92,31 @@ private fun MergePopup(
     ) { 0f }
 
     if (alpha > 0f) {
-        // Position within the board box based on grid coordinates
+        // Position within the board box based on grid coordinates.
+        // Uses layout{} so the cell position is computed from the actual
+        // parent size at layout time, not from a hardcoded dp assumption.
         Box(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopStart
         ) {
-            // Compute fractional position within the board
-            val cellFractionX = col.toFloat() / boardSize
-            val cellFractionY = row.toFloat() / boardSize
-
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(fraction = 1f / boardSize)
-                    .fillMaxHeight(fraction = 1f / boardSize)
-                    .offset(
-                        x = (cellFractionX * 100).toInt().dp,
-                        y = (cellFractionY * 100).toInt().dp
-                    ),
+                    .fillMaxSize()
+                    .layout { measurable, constraints ->
+                        val cellW = constraints.maxWidth / boardSize
+                        val cellH = constraints.maxHeight / boardSize
+                        val placeable = measurable.measure(
+                            constraints.copy(
+                                minWidth = cellW,
+                                maxWidth = cellW,
+                                minHeight = cellH,
+                                maxHeight = cellH
+                            )
+                        )
+                        layout(constraints.maxWidth, constraints.maxHeight) {
+                            placeable.place(col * cellW, row * cellH)
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
