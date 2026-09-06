@@ -1,91 +1,286 @@
 package com.finley.android.merge2048.domain
 
+import org.jetbrains.compose.resources.StringResource
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.ach_big_board_desc
+import merge2048.app.shared.generated.resources.ach_big_board_emoji
+import merge2048.app.shared.generated.resources.ach_big_board_title
+import merge2048.app.shared.generated.resources.ach_chain_5_desc
+import merge2048.app.shared.generated.resources.ach_chain_5_emoji
+import merge2048.app.shared.generated.resources.ach_chain_5_title
+import merge2048.app.shared.generated.resources.ach_chain_8_desc
+import merge2048.app.shared.generated.resources.ach_chain_8_emoji
+import merge2048.app.shared.generated.resources.ach_chain_8_title
+import merge2048.app.shared.generated.resources.ach_fast_1024_desc
+import merge2048.app.shared.generated.resources.ach_fast_1024_emoji
+import merge2048.app.shared.generated.resources.ach_fast_1024_title
+import merge2048.app.shared.generated.resources.ach_first_1024_desc
+import merge2048.app.shared.generated.resources.ach_first_1024_emoji
+import merge2048.app.shared.generated.resources.ach_first_1024_title
+import merge2048.app.shared.generated.resources.ach_first_128_desc
+import merge2048.app.shared.generated.resources.ach_first_128_emoji
+import merge2048.app.shared.generated.resources.ach_first_128_title
+import merge2048.app.shared.generated.resources.ach_first_2048_desc
+import merge2048.app.shared.generated.resources.ach_first_2048_emoji
+import merge2048.app.shared.generated.resources.ach_first_2048_title
+import merge2048.app.shared.generated.resources.ach_first_32_desc
+import merge2048.app.shared.generated.resources.ach_first_32_emoji
+import merge2048.app.shared.generated.resources.ach_first_32_title
+import merge2048.app.shared.generated.resources.ach_first_4096_desc
+import merge2048.app.shared.generated.resources.ach_first_4096_emoji
+import merge2048.app.shared.generated.resources.ach_first_4096_title
+import merge2048.app.shared.generated.resources.ach_first_512_desc
+import merge2048.app.shared.generated.resources.ach_first_512_emoji
+import merge2048.app.shared.generated.resources.ach_first_512_title
+import merge2048.app.shared.generated.resources.ach_first_8192_desc
+import merge2048.app.shared.generated.resources.ach_first_8192_emoji
+import merge2048.app.shared.generated.resources.ach_first_8192_title
+import merge2048.app.shared.generated.resources.ach_first_8_desc
+import merge2048.app.shared.generated.resources.ach_first_8_emoji
+import merge2048.app.shared.generated.resources.ach_first_8_title
+import merge2048.app.shared.generated.resources.ach_first_merge_desc
+import merge2048.app.shared.generated.resources.ach_first_merge_emoji
+import merge2048.app.shared.generated.resources.ach_first_merge_title
+import merge2048.app.shared.generated.resources.ach_games_10_desc
+import merge2048.app.shared.generated.resources.ach_games_10_emoji
+import merge2048.app.shared.generated.resources.ach_games_10_title
+import merge2048.app.shared.generated.resources.ach_games_100_desc
+import merge2048.app.shared.generated.resources.ach_games_100_emoji
+import merge2048.app.shared.generated.resources.ach_games_100_title
+import merge2048.app.shared.generated.resources.ach_max_board_desc
+import merge2048.app.shared.generated.resources.ach_max_board_emoji
+import merge2048.app.shared.generated.resources.ach_max_board_title
+import merge2048.app.shared.generated.resources.ach_moves_100_desc
+import merge2048.app.shared.generated.resources.ach_moves_100_emoji
+import merge2048.app.shared.generated.resources.ach_moves_100_title
+import merge2048.app.shared.generated.resources.ach_moves_1000_desc
+import merge2048.app.shared.generated.resources.ach_moves_1000_emoji
+import merge2048.app.shared.generated.resources.ach_moves_1000_title
+import merge2048.app.shared.generated.resources.ach_moves_500_desc
+import merge2048.app.shared.generated.resources.ach_moves_500_emoji
+import merge2048.app.shared.generated.resources.ach_moves_500_title
+import merge2048.app.shared.generated.resources.ach_score_100k_desc
+import merge2048.app.shared.generated.resources.ach_score_100k_emoji
+import merge2048.app.shared.generated.resources.ach_score_100k_title
+import merge2048.app.shared.generated.resources.ach_score_10k_desc
+import merge2048.app.shared.generated.resources.ach_score_10k_emoji
+import merge2048.app.shared.generated.resources.ach_score_10k_title
+import merge2048.app.shared.generated.resources.ach_score_50k_desc
+import merge2048.app.shared.generated.resources.ach_score_50k_emoji
+import merge2048.app.shared.generated.resources.ach_score_50k_title
+import merge2048.app.shared.generated.resources.ach_small_board_desc
+import merge2048.app.shared.generated.resources.ach_small_board_emoji
+import merge2048.app.shared.generated.resources.ach_small_board_title
+import merge2048.app.shared.generated.resources.ach_undo_abstain_desc
+import merge2048.app.shared.generated.resources.ach_undo_abstain_emoji
+import merge2048.app.shared.generated.resources.ach_undo_abstain_title
+
 /**
  * Catalog of unlockable achievements. Each entry declares a deterministic
- * [trigger] function over the pre/post move context, plus presentation fields.
+ * [trigger] function over the pre/post move context, plus a stable [id] and
+ * presentation fields backed by i18n resources so the UI can be translated.
  *
  * The catalog is the single source of truth for both the "is this unlocked"
- * test and the "how do I show it" UI, so the achievement wall always
- * stays in sync.
+ * test and the "how do I show it" UI.
  */
 enum class Achievement(
     val id: String,
-    val title: String,
-    val description: String,
-    val emoji: String,
+    val emoji: StringResource,
+    val title: StringResource,
+    val description: StringResource,
     val trigger: AchievementTrigger
 ) {
-    FirstMerge("first_merge", "Hello, world", "Make your first merge.", "👋",
-        AchievementTrigger.MergeAny),
+    FirstMerge(
+        "first_merge",
+        Res.string.ach_first_merge_emoji,
+        Res.string.ach_first_merge_title,
+        Res.string.ach_first_merge_desc,
+        AchievementTrigger.MergeAny
+    ),
 
-    First8("first_8", "On the ladder", "Create a tile of 8.", "🪜",
-        AchievementTrigger.ReachTile(8)),
+    First8(
+        "first_8",
+        Res.string.ach_first_8_emoji,
+        Res.string.ach_first_8_title,
+        Res.string.ach_first_8_desc,
+        AchievementTrigger.ReachTile(8)
+    ),
 
-    First32("first_32", "Double digits", "Create a tile of 32.", "🔟",
-        AchievementTrigger.ReachTile(32)),
+    First32(
+        "first_32",
+        Res.string.ach_first_32_emoji,
+        Res.string.ach_first_32_title,
+        Res.string.ach_first_32_desc,
+        AchievementTrigger.ReachTile(32)
+    ),
 
-    First128("first_128", "Three digits!", "Create a tile of 128.", "1️⃣2️⃣8️⃣",
-        AchievementTrigger.ReachTile(128)),
+    First128(
+        "first_128",
+        Res.string.ach_first_128_emoji,
+        Res.string.ach_first_128_title,
+        Res.string.ach_first_128_desc,
+        AchievementTrigger.ReachTile(128)
+    ),
 
-    First512("first_512", "Five-twelve", "Create a tile of 512.", "🔥",
-        AchievementTrigger.ReachTile(512)),
+    First512(
+        "first_512",
+        Res.string.ach_first_512_emoji,
+        Res.string.ach_first_512_title,
+        Res.string.ach_first_512_desc,
+        AchievementTrigger.ReachTile(512)
+    ),
 
-    First1024("first_1024", "One-zero-two-four", "Create a tile of 1024.", "💎",
-        AchievementTrigger.ReachTile(1024)),
+    First1024(
+        "first_1024",
+        Res.string.ach_first_1024_emoji,
+        Res.string.ach_first_1024_title,
+        Res.string.ach_first_1024_desc,
+        AchievementTrigger.ReachTile(1024)
+    ),
 
-    First2048("first_2048", "The classic", "Create a tile of 2048.", "🏆",
-        AchievementTrigger.ReachTile(2048)),
+    First2048(
+        "first_2048",
+        Res.string.ach_first_2048_emoji,
+        Res.string.ach_first_2048_title,
+        Res.string.ach_first_2048_desc,
+        AchievementTrigger.ReachTile(2048)
+    ),
 
-    First4096("first_4096", "Beyond the original", "Create a tile of 4096.", "🚀",
-        AchievementTrigger.ReachTile(4096)),
+    First4096(
+        "first_4096",
+        Res.string.ach_first_4096_emoji,
+        Res.string.ach_first_4096_title,
+        Res.string.ach_first_4096_desc,
+        AchievementTrigger.ReachTile(4096)
+    ),
 
-    First8192("first_8192", "Double-overkill", "Create a tile of 8192.", "🌌",
-        AchievementTrigger.ReachTile(8192)),
+    First8192(
+        "first_8192",
+        Res.string.ach_first_8192_emoji,
+        Res.string.ach_first_8192_title,
+        Res.string.ach_first_8192_desc,
+        AchievementTrigger.ReachTile(8192)
+    ),
 
-    Chain5("chain_5", "Combo starter", "Merge five times in a single move.", "⚡",
-        AchievementTrigger.ChainInOneMove(5)),
+    Chain5(
+        "chain_5",
+        Res.string.ach_chain_5_emoji,
+        Res.string.ach_chain_5_title,
+        Res.string.ach_chain_5_desc,
+        AchievementTrigger.ChainInOneMove(5)
+    ),
 
-    Chain8("chain_8", "Combo master", "Merge eight times in a single move.", "🌪️",
-        AchievementTrigger.ChainInOneMove(8)),
+    Chain8(
+        "chain_8",
+        Res.string.ach_chain_8_emoji,
+        Res.string.ach_chain_8_title,
+        Res.string.ach_chain_8_desc,
+        AchievementTrigger.ChainInOneMove(8)
+    ),
 
-    Moves100("moves_100", "Practiced", "Reach 100 moves in a single game.", "💯",
-        AchievementTrigger.MovesReached(100)),
+    Moves100(
+        "moves_100",
+        Res.string.ach_moves_100_emoji,
+        Res.string.ach_moves_100_title,
+        Res.string.ach_moves_100_desc,
+        AchievementTrigger.MovesReached(100)
+    ),
 
-    Moves500("moves_500", "Dedicated", "Reach 500 moves in a single game.", "🧘",
-        AchievementTrigger.MovesReached(500)),
+    Moves500(
+        "moves_500",
+        Res.string.ach_moves_500_emoji,
+        Res.string.ach_moves_500_title,
+        Res.string.ach_moves_500_desc,
+        AchievementTrigger.MovesReached(500)
+    ),
 
-    Moves1000("moves_1000", "Marathoner", "Reach 1000 moves in a single game.", "🏃",
-        AchievementTrigger.MovesReached(1000)),
+    Moves1000(
+        "moves_1000",
+        Res.string.ach_moves_1000_emoji,
+        Res.string.ach_moves_1000_title,
+        Res.string.ach_moves_1000_desc,
+        AchievementTrigger.MovesReached(1000)
+    ),
 
-    Score10k("score_10k", "Five figures", "Reach 10,000 in a single game.", "💵",
-        AchievementTrigger.ScoreReached(10_000)),
+    Score10k(
+        "score_10k",
+        Res.string.ach_score_10k_emoji,
+        Res.string.ach_score_10k_title,
+        Res.string.ach_score_10k_desc,
+        AchievementTrigger.ScoreReached(10_000)
+    ),
 
-    Score50k("score_50k", "Five-zero-K", "Reach 50,000 in a single game.", "💰",
-        AchievementTrigger.ScoreReached(50_000)),
+    Score50k(
+        "score_50k",
+        Res.string.ach_score_50k_emoji,
+        Res.string.ach_score_50k_title,
+        Res.string.ach_score_50k_desc,
+        AchievementTrigger.ScoreReached(50_000)
+    ),
 
-    Score100k("score_100k", "Six figures", "Reach 100,000 in a single game.", "🤑",
-        AchievementTrigger.ScoreReached(100_000)),
+    Score100k(
+        "score_100k",
+        Res.string.ach_score_100k_emoji,
+        Res.string.ach_score_100k_title,
+        Res.string.ach_score_100k_desc,
+        AchievementTrigger.ScoreReached(100_000)
+    ),
 
-    GamePlayed10("games_10", "Warming up", "Play 10 games.", "🎮",
-        AchievementTrigger.GamesPlayedReached(10)),
+    GamePlayed10(
+        "games_10",
+        Res.string.ach_games_10_emoji,
+        Res.string.ach_games_10_title,
+        Res.string.ach_games_10_desc,
+        AchievementTrigger.GamesPlayedReached(10)
+    ),
 
-    GamePlayed100("games_100", "Century club", "Play 100 games.", "💯",
-        AchievementTrigger.GamesPlayedReached(100)),
+    GamePlayed100(
+        "games_100",
+        Res.string.ach_games_100_emoji,
+        Res.string.ach_games_100_title,
+        Res.string.ach_games_100_desc,
+        AchievementTrigger.GamesPlayedReached(100)
+    ),
 
-    UndoAbstain("undo_abstain", "No regrets", "Win a game without using Undo.", "🧱",
-        AchievementTrigger.WinWithoutUndo),
+    UndoAbstain(
+        "undo_abstain",
+        Res.string.ach_undo_abstain_emoji,
+        Res.string.ach_undo_abstain_title,
+        Res.string.ach_undo_abstain_desc,
+        AchievementTrigger.WinWithoutUndo
+    ),
 
-    Fast1024("fast_1024", "Speed cuber", "Reach 1024 within 50 moves.", "⏱️",
-        AchievementTrigger.FastToTile(tile = 1024, maxMoves = 50)),
+    Fast1024(
+        "fast_1024",
+        Res.string.ach_fast_1024_emoji,
+        Res.string.ach_fast_1024_title,
+        Res.string.ach_fast_1024_desc,
+        AchievementTrigger.FastToTile(tile = 1024, maxMoves = 50)
+    ),
 
-    SmallBoard("small_board", "Compact expert", "Win on a 3x3 board.", "🧩",
-        AchievementTrigger.WinOnBoardSize(3)),
+    SmallBoard(
+        "small_board",
+        Res.string.ach_small_board_emoji,
+        Res.string.ach_small_board_title,
+        Res.string.ach_small_board_desc,
+        AchievementTrigger.WinOnBoardSize(3)
+    ),
 
-    BigBoard("big_board", "Big board boss", "Win on a 5x5 board.", "🗺️",
-        AchievementTrigger.WinOnBoardSize(5)),
+    BigBoard(
+        "big_board",
+        Res.string.ach_big_board_emoji,
+        Res.string.ach_big_board_title,
+        Res.string.ach_big_board_desc,
+        AchievementTrigger.WinOnBoardSize(5)
+    ),
 
-    MaxBoard("max_board", "Marathon board", "Win on a 6x6 board.", "🧭",
-        AchievementTrigger.WinOnBoardSize(6));
+    MaxBoard(
+        "max_board",
+        Res.string.ach_max_board_emoji,
+        Res.string.ach_max_board_title,
+        Res.string.ach_max_board_desc,
+        AchievementTrigger.WinOnBoardSize(6)
+    );
 
     companion object {
         val All: List<Achievement> = values().toList()

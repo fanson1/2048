@@ -15,9 +15,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.achievement_unlocked_toast_format
 import com.finley.android.merge2048.GameColors
 import com.finley.android.merge2048.domain.Achievement
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun AchievementWall(
@@ -68,19 +71,19 @@ private fun AchievementBadge(
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                text = achievement.emoji,
+                text = stringResource(achievement.emoji),
                 fontSize = if (unlocked) 28.sp else 24.sp,
                 textAlign = TextAlign.Center
             )
             Text(
-                text = achievement.title,
+                text = stringResource(achievement.title),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (unlocked) GameColors.HeaderText else GameColors.SubText.copy(alpha = 0.5f),
                 textAlign = TextAlign.Center
             )
             Text(
-                text = achievement.description,
+                text = stringResource(achievement.description),
                 fontSize = 9.sp,
                 color = GameColors.SubText.copy(alpha = if (unlocked) 1f else 0.4f),
                 textAlign = TextAlign.Center
@@ -121,21 +124,22 @@ fun AchievementToast(
                     .padding(horizontal = 20.dp, vertical = 14.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                val emoji = stringResource(achievement.emoji)
                 Text(
-                    text = "${achievement.emoji} Achievement Unlocked!",
+                    text = stringResource(Res.string.achievement_unlocked_toast_format, emoji),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = achievement.title,
+                    text = stringResource(achievement.title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Black,
                     color = Color.White
                 )
                 Text(
-                    text = achievement.description,
+                    text = stringResource(achievement.description),
                     fontSize = 12.sp,
                     color = Color.White.copy(alpha = 0.8f),
                     textAlign = TextAlign.Center

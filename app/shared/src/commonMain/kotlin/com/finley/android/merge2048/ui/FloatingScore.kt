@@ -13,7 +13,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.merge_combo_label_format
+import merge2048.app.shared.generated.resources.merge_score_popup_format
 import com.finley.android.merge2048.GameColors
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Merges at each merge position: shows "+N" floating upward, and a combo label
@@ -109,7 +113,7 @@ private fun MergePopup(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "+$points",
+                        text = stringResource(Res.string.merge_score_popup_format, points),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = GameColors.ButtonBackground.copy(alpha = alpha),
@@ -122,7 +126,7 @@ private fun MergePopup(
                     )
                     if (isComboLabel && comboCount > 1) {
                         Text(
-                            text = "COMBO x${comboCount}",
+                            text = stringResource(Res.string.merge_combo_label_format, comboCount),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = GameColors.Tile2048.copy(alpha = alpha),
@@ -172,7 +176,7 @@ fun FloatingScore(
     if (alpha > 0f) {
         Box(modifier = modifier, contentAlignment = Alignment.Center) {
             Text(
-                text = "+$points",
+                text = stringResource(Res.string.merge_score_popup_format, points),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = GameColors.ButtonBackground.copy(alpha = alpha),

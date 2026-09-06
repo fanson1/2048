@@ -29,6 +29,22 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.dialog_win_keep_going
+import merge2048.app.shared.generated.resources.dialog_win_play_again
+import merge2048.app.shared.generated.resources.dialog_win_subtitle
+import merge2048.app.shared.generated.resources.dialog_win_title
+import merge2048.app.shared.generated.resources.game_footer_controls_hint
+import merge2048.app.shared.generated.resources.game_footer_signature
+import merge2048.app.shared.generated.resources.game_how_to_play_label
+import merge2048.app.shared.generated.resources.game_title_2048
+import merge2048.app.shared.generated.resources.icon_chart
+import merge2048.app.shared.generated.resources.icon_settings
+import merge2048.app.shared.generated.resources.placeholder_em_dash
+import merge2048.app.shared.generated.resources.stat_label_best
+import merge2048.app.shared.generated.resources.stat_label_max
+import merge2048.app.shared.generated.resources.stat_label_moves
+import merge2048.app.shared.generated.resources.stat_label_score
 import com.finley.android.merge2048.domain.Direction
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameState
@@ -44,6 +60,7 @@ import com.finley.android.merge2048.ui.ScoreBlock
 import com.finley.android.merge2048.ui.StatPill
 import com.finley.android.merge2048.ui.TileProgressBar
 import com.finley.android.merge2048.ui.UndoButton
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Screen layer: composes the presentational building blocks ([ui] package)
@@ -120,7 +137,7 @@ internal fun GameContent(
             ) {
                 if (hintVisible) {
                     Text(
-                        text = "HOW TO PLAY",
+                        text = stringResource(Res.string.game_how_to_play_label),
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.sp,
@@ -177,14 +194,14 @@ internal fun GameContent(
                 Spacer(modifier = Modifier.height(10.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "Swipe or use arrow keys / WASD \u2022 R to restart \u2022 Undo to go back",
+                        text = stringResource(Res.string.game_footer_controls_hint),
                         fontSize = 11.sp,
                         color = GameColors.SubText,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Made for fun \u2022 Merge2048",
+                        text = stringResource(Res.string.game_footer_signature),
                         fontSize = 11.sp,
                         color = GameColors.SubText.copy(alpha = 0.7f),
                         textAlign = TextAlign.Center
@@ -206,6 +223,7 @@ private fun Header(
     titleFont: TextUnit,
     compact: Boolean
 ) {
+    val emDash = stringResource(Res.string.placeholder_em_dash)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -213,7 +231,7 @@ private fun Header(
     ) {
         Column {
             Text(
-                text = "2048",
+                text = stringResource(Res.string.game_title_2048),
                 fontSize = titleFont,
                 fontWeight = FontWeight.Black,
                 color = GameColors.HeaderText,
@@ -221,13 +239,13 @@ private fun Header(
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 StatPill(
-                    label = "MAX",
-                    value = if (maxTile == 0) "\u2014" else maxTile.toString(),
+                    label = stringResource(Res.string.stat_label_max),
+                    value = if (maxTile == 0) emDash else maxTile.toString(),
                     accent = GameColors.Tile2048
                 )
                 Spacer(modifier = Modifier.width(if (compact) 8.dp else 12.dp))
                 StatPill(
-                    label = "MOVES",
+                    label = stringResource(Res.string.stat_label_moves),
                     value = moveCount.toString(),
                     accent = GameColors.SubText
                 )
@@ -249,12 +267,12 @@ private fun Header(
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             ScoreBlock(
-                label = "SCORE",
+                label = stringResource(Res.string.stat_label_score),
                 value = score,
                 compact = compact
             )
             ScoreBlock(
-                label = "BEST",
+                label = stringResource(Res.string.stat_label_best),
                 value = bestScore,
                 compact = compact
             )
@@ -325,14 +343,14 @@ private fun BoardAndOverlays(
                 exit = fadeOut(tween(200))
             ) {
                 GameOverlay(
-                    title = "You win!",
-                    subtitle = "You made the 2048 tile!",
+                    title = stringResource(Res.string.dialog_win_title),
+                    subtitle = stringResource(Res.string.dialog_win_subtitle),
                     score = score,
                     bestScore = bestScore,
                     maxTile = maxTile,
-                    primaryLabel = "Play again",
+                    primaryLabel = stringResource(Res.string.dialog_win_play_again),
                     onPrimary = onNewGame,
-                    secondaryLabel = "Keep going",
+                    secondaryLabel = stringResource(Res.string.dialog_win_keep_going),
                     onSecondary = onContinue,
                     highlight = GameColors.Tile2048,
                     onDismiss = onDismissWin
@@ -364,7 +382,7 @@ private fun ChartIcon(onClick: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "\uD83D\uDCCA",
+            text = stringResource(Res.string.icon_chart),
             fontSize = 16.sp,
             color = GameColors.SubText
         )
@@ -380,7 +398,7 @@ private fun SettingsIcon(onClick: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "\u2699\uFE0F",
+            text = stringResource(Res.string.icon_settings),
             fontSize = 18.sp,
             color = GameColors.SubText
         )

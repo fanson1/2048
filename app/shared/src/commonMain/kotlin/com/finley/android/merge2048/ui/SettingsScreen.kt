@@ -18,10 +18,43 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.icon_back_arrow
+import merge2048.app.shared.generated.resources.icon_check_mark
+import merge2048.app.shared.generated.resources.screen_settings_title
+import merge2048.app.shared.generated.resources.settings_achievements_progress_format
+import merge2048.app.shared.generated.resources.settings_animation_full
+import merge2048.app.shared.generated.resources.settings_animation_full_desc
+import merge2048.app.shared.generated.resources.settings_animation_off
+import merge2048.app.shared.generated.resources.settings_animation_off_desc
+import merge2048.app.shared.generated.resources.settings_animation_reduced
+import merge2048.app.shared.generated.resources.settings_animation_reduced_desc
+import merge2048.app.shared.generated.resources.settings_board_size_chip_format
+import merge2048.app.shared.generated.resources.settings_board_size_classic
+import merge2048.app.shared.generated.resources.settings_board_size_fast
+import merge2048.app.shared.generated.resources.settings_board_size_large
+import merge2048.app.shared.generated.resources.settings_board_size_massive
+import merge2048.app.shared.generated.resources.settings_dark_mode_label
+import merge2048.app.shared.generated.resources.settings_section_achievements
+import merge2048.app.shared.generated.resources.settings_section_animation
+import merge2048.app.shared.generated.resources.settings_section_appearance
+import merge2048.app.shared.generated.resources.settings_section_board_size
+import merge2048.app.shared.generated.resources.settings_section_sound
+import merge2048.app.shared.generated.resources.settings_section_stats
+import merge2048.app.shared.generated.resources.settings_section_theme
+import merge2048.app.shared.generated.resources.settings_sound_effects_label
+import merge2048.app.shared.generated.resources.settings_switch_off
+import merge2048.app.shared.generated.resources.settings_switch_on
+import merge2048.app.shared.generated.resources.settings_theme_locked_format
+import merge2048.app.shared.generated.resources.stat_label_best_max_tile
+import merge2048.app.shared.generated.resources.stat_label_best_score_value
+import merge2048.app.shared.generated.resources.stat_label_games_played
+import merge2048.app.shared.generated.resources.stat_label_total_score
 import com.finley.android.merge2048.GameColors
 import com.finley.android.merge2048.domain.AnimationLevel
 import com.finley.android.merge2048.domain.Achievement
 import com.finley.android.merge2048.domain.UserPreferences
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SettingsScreen(
@@ -39,7 +72,7 @@ fun SettingsScreen(
         // ---- Header ----
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "\u2190",
+                text = stringResource(Res.string.icon_back_arrow),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Light,
                 color = GameColors.HeaderText,
@@ -48,7 +81,7 @@ fun SettingsScreen(
                     .padding(end = 12.dp)
             )
             Text(
-                text = "Settings",
+                text = stringResource(Res.string.screen_settings_title),
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Black,
                 color = GameColors.HeaderText
@@ -58,7 +91,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(28.dp))
 
         // ---- Board Size ----
-        SettingSection("BOARD SIZE") {
+        SettingSection(stringResource(Res.string.settings_section_board_size)) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth()
@@ -77,13 +110,16 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ---- Theme ----
-        SettingSection("THEME") {
+        SettingSection(stringResource(Res.string.settings_section_theme)) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 com.finley.android.merge2048.domain.GameTheme.all.forEach { theme ->
                     val unlocked = theme.isUnlocked(prefs.gamesPlayed, prefs.bestMaxTile)
+                    val displayName = stringResource(theme.displayName)
+                    val unlockRequirement = stringResource(theme.unlockRequirement)
                     SelectableRow(
-                        label = theme.displayName,
-                        subtitle = if (unlocked) theme.unlockRequirement else "Locked: ${theme.unlockRequirement}",
+                        label = displayName,
+                        subtitle = if (unlocked) unlockRequirement
+                        else stringResource(Res.string.settings_theme_locked_format, unlockRequirement),
                         selected = prefs.themeId == theme.id,
                         enabled = unlocked,
                         onClick = { if (unlocked) onUpdate(prefs.copy(themeId = theme.id)) }
@@ -95,18 +131,18 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ---- Animation Level ----
-        SettingSection("ANIMATION") {
+        SettingSection(stringResource(Res.string.settings_section_animation)) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 AnimationLevel.entries.forEach { level ->
                     val label = when (level) {
-                        AnimationLevel.FULL -> "Full"
-                        AnimationLevel.REDUCED -> "Reduced"
-                        AnimationLevel.OFF -> "Off"
+                        AnimationLevel.FULL -> stringResource(Res.string.settings_animation_full)
+                        AnimationLevel.REDUCED -> stringResource(Res.string.settings_animation_reduced)
+                        AnimationLevel.OFF -> stringResource(Res.string.settings_animation_off)
                     }
                     val desc = when (level) {
-                        AnimationLevel.FULL -> "All animations and effects"
-                        AnimationLevel.REDUCED -> "Quick transitions, no long slides"
-                        AnimationLevel.OFF -> "Instant, no transitions"
+                        AnimationLevel.FULL -> stringResource(Res.string.settings_animation_full_desc)
+                        AnimationLevel.REDUCED -> stringResource(Res.string.settings_animation_reduced_desc)
+                        AnimationLevel.OFF -> stringResource(Res.string.settings_animation_off_desc)
                     }
                     SelectableRow(
                         label = label,
@@ -121,7 +157,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ---- Dark Mode ----
-        SettingSection("APPEARANCE") {
+        SettingSection(stringResource(Res.string.settings_section_appearance)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -134,13 +170,14 @@ fun SettingsScreen(
             ) {
                 Column {
                     Text(
-                        text = "Dark mode",
+                        text = stringResource(Res.string.settings_dark_mode_label),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = GameColors.HeaderText
                     )
                     Text(
-                        text = if (prefs.darkMode) "On" else "Off",
+                        text = if (prefs.darkMode) stringResource(Res.string.settings_switch_on)
+                        else stringResource(Res.string.settings_switch_off),
                         fontSize = 13.sp,
                         color = GameColors.SubText
                     )
@@ -161,7 +198,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ---- Sound ----
-        SettingSection("SOUND") {
+        SettingSection(stringResource(Res.string.settings_section_sound)) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -174,13 +211,14 @@ fun SettingsScreen(
             ) {
                 Column {
                     Text(
-                        text = "Sound effects",
+                        text = stringResource(Res.string.settings_sound_effects_label),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = GameColors.HeaderText
                     )
                     Text(
-                        text = if (prefs.soundEnabled) "On" else "Off",
+                        text = if (prefs.soundEnabled) stringResource(Res.string.settings_switch_on)
+                        else stringResource(Res.string.settings_switch_off),
                         fontSize = 13.sp,
                         color = GameColors.SubText
                     )
@@ -201,7 +239,7 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // ---- Stats ----
-        SettingSection("STATS") {
+        SettingSection(stringResource(Res.string.settings_section_stats)) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -210,22 +248,25 @@ fun SettingsScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                StatRow("Games played", prefs.gamesPlayed.toString())
-                StatRow("Best score", prefs.bestScore.toString())
-                StatRow("Best max tile", prefs.bestMaxTile.toString())
-                val totalMerges = prefs.totalMerges
-                StatRow("Total score", prefs.totalScore.toString())
+                StatRow(stringResource(Res.string.stat_label_games_played), prefs.gamesPlayed.toString())
+                StatRow(stringResource(Res.string.stat_label_best_score_value), prefs.bestScore.toString())
+                StatRow(stringResource(Res.string.stat_label_best_max_tile), prefs.bestMaxTile.toString())
+                StatRow(stringResource(Res.string.stat_label_total_score), prefs.totalScore.toString())
             }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
         // ---- Achievements ----
-        SettingSection("ACHIEVEMENTS") {
+        SettingSection(stringResource(Res.string.settings_section_achievements)) {
             val unlockedCount = prefs.unlockedAchievementIds.size
             val totalCount = Achievement.All.size
             Text(
-                text = "$unlockedCount / $totalCount unlocked",
+                text = stringResource(
+                    Res.string.settings_achievements_progress_format,
+                    unlockedCount,
+                    totalCount
+                ),
                 fontSize = 14.sp,
                 color = GameColors.SubText
             )
@@ -277,13 +318,18 @@ private fun BoardSizeChip(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "${size}x$size",
+                text = stringResource(Res.string.settings_board_size_chip_format, size),
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Black,
                 color = if (selected) Color.White else GameColors.HeaderText
             )
             Text(
-                text = if (size == 4) "Classic" else if (size == 3) "Fast" else if (size == 5) "Large" else "Massive",
+                text = when (size) {
+                    3 -> stringResource(Res.string.settings_board_size_fast)
+                    4 -> stringResource(Res.string.settings_board_size_classic)
+                    5 -> stringResource(Res.string.settings_board_size_large)
+                    else -> stringResource(Res.string.settings_board_size_massive)
+                },
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Medium,
                 color = if (selected) Color.White.copy(alpha = 0.8f) else GameColors.SubText
@@ -334,31 +380,11 @@ private fun SelectableRow(
         }
         if (selected) {
             Text(
-                text = "\u2714",
+                text = stringResource(Res.string.icon_check_mark),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = GameColors.ButtonBackground
             )
         }
-    }
-}
-
-@Composable
-private fun StatRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            color = GameColors.SubText
-        )
-        Text(
-            text = value,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color = GameColors.HeaderText
-        )
     }
 }

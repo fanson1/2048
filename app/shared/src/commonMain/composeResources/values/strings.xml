@@ -1,0 +1,270 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">Merge2048</string>
+
+    <!-- ===== Common icons / single characters ===== -->
+    <string name="icon_back_arrow">←</string>
+    <string name="icon_check_mark">✔</string>
+    <string name="icon_undo">↩</string>
+    <string name="icon_chart">📊</string>
+    <string name="icon_settings">⚙️</string>
+    <string name="placeholder_em_dash">—</string>
+
+    <!-- ===== Screen titles ===== -->
+    <string name="screen_stats_history_title">Stats &amp; History</string>
+    <string name="screen_settings_title">Settings</string>
+
+    <!-- ===== Game screen (main) ===== -->
+    <string name="game_title_2048">2048</string>
+    <string name="game_how_to_play_label">HOW TO PLAY</string>
+    <string name="game_footer_controls_hint">Swipe or use arrow keys / WASD • R to restart • Undo to go back</string>
+    <string name="game_footer_signature">Made for fun • Merge2048</string>
+
+    <!-- ===== Game stats labels ===== -->
+    <string name="stat_label_max">MAX</string>
+    <string name="stat_label_moves">MOVES</string>
+    <string name="stat_label_score">SCORE</string>
+    <string name="stat_label_best">BEST</string>
+    <string name="stat_label_games">GAMES</string>
+    <string name="stat_label_win_rate">WIN RATE</string>
+    <string name="stat_label_best_score">BEST SCORE</string>
+    <string name="stat_label_best_max">BEST MAX</string>
+    <string name="stat_label_avg_score">AVG SCORE</string>
+    <string name="stat_label_best_move">BEST MOVE</string>
+    <string name="stat_label_max_tile">MAX TILE</string>
+    <string name="stat_label_games_played">Games played</string>
+    <string name="stat_label_best_score_value">Best score</string>
+    <string name="stat_label_best_max_tile">Best max tile</string>
+    <string name="stat_label_total_score">Total score</string>
+    <string name="stat_value_win_rate_format">%1$d%%</string>
+
+    <!-- ===== Win overlay ===== -->
+    <string name="dialog_win_title">You win!</string>
+    <string name="dialog_win_subtitle">You made the 2048 tile!</string>
+    <string name="dialog_win_play_again">Play again</string>
+    <string name="dialog_win_keep_going">Keep going</string>
+    <string name="overlay_close_button">Close</string>
+    <string name="overlay_score_label">SCORE</string>
+    <string name="overlay_best_label">BEST</string>
+    <string name="overlay_max_label">MAX</string>
+
+    <!-- ===== Game board ===== -->
+    <string name="board_swipe_to_play">Swipe to play</string>
+    <string name="tile_content_desc_empty">empty</string>
+    <string name="tile_content_desc_value">Tile %1$d</string>
+
+    <!-- ===== Game over summary ===== -->
+    <string name="game_over_title">GAME OVER</string>
+    <string name="game_over_new_record_title">NEW RECORD!</string>
+    <string name="game_over_score_label">SCORE</string>
+    <string name="game_over_best_label">BEST</string>
+    <string name="game_over_max_label">MAX</string>
+    <string name="game_over_moves_label">MOVES</string>
+    <string name="game_over_merges_label">MERGES</string>
+    <string name="game_over_avg_merge_label">AVG MERGE</string>
+    <string name="game_over_efficiency_label">EFFICIENCY</string>
+    <string name="game_over_efficiency_zero">0%</string>
+    <string name="game_over_efficiency_format">%1$d%%</string>
+    <string name="game_over_avg_merge_zero">0</string>
+    <string name="game_over_play_again">PLAY AGAIN</string>
+    <string name="game_over_close">CLOSE</string>
+    <string name="game_over_msg_legendary">Legendary performance! You are a master!</string>
+    <string name="game_over_msg_incredible">Incredible! The 2048 tile is no small feat!</string>
+    <string name="game_over_msg_great">Great game! You\'re getting close to 2048!</string>
+    <string name="game_over_msg_nice">Nice run! Keep pushing for bigger tiles!</string>
+    <string name="game_over_msg_good_effort">Good effort! Every merge counts!</string>
+    <string name="game_over_msg_strong_score">Strong score! Try for a higher max tile next time!</string>
+    <string name="game_over_msg_decent">Decent game! Focus on building up large tiles.</string>
+    <string name="game_over_msg_default">Every game teaches you something new. Try again!</string>
+
+    <!-- ===== Undo button ===== -->
+    <string name="undo_button_text_with_count">↩ %1$d</string>
+    <string name="undo_button_text">↩</string>
+    <string name="undo_button_desc_with_count">Undo, %1$d remaining</string>
+    <string name="undo_button_desc">Undo</string>
+
+    <!-- ===== New game button ===== -->
+    <string name="new_game_button_text">NEW</string>
+    <string name="new_game_button_desc">New Game</string>
+
+    <!-- ===== Score block (accessibility) ===== -->
+    <string name="score_block_content_desc_format">%1$s %2$d</string>
+
+    <!-- ===== Combo badge ===== -->
+    <string name="combo_badge_text_format">x%1$d</string>
+
+    <!-- ===== Merge popup ===== -->
+    <string name="merge_score_popup_format">+%1$d</string>
+    <string name="merge_combo_label_format">COMBO x%1$d</string>
+
+    <!-- ===== Tile progress bar ===== -->
+    <string name="progress_next_tile_format">Next: %1$d</string>
+    <string name="progress_percentage_format">%1$d%%</string>
+
+    <!-- ===== Tutorial overlay ===== -->
+    <string name="tutorial_step_1_emoji">🎮</string>
+    <string name="tutorial_step_1_title">Welcome to Merge2048</string>
+    <string name="tutorial_step_1_body">Swipe up, down, left or right to move all tiles. When two tiles with the same number touch, they merge into one!</string>
+    <string name="tutorial_step_2_emoji">🎯</string>
+    <string name="tutorial_step_2_title">Reach 2048</string>
+    <string name="tutorial_step_2_body">Your goal is to create a tile with 2048. Keep merging to push your best score higher and unlock achievements.</string>
+    <string name="tutorial_step_3_emoji">💪</string>
+    <string name="tutorial_step_3_title">You\'re in control</string>
+    <string name="tutorial_step_3_body">Tap UNDO to take back a move, NEW GAME to start over, or ⚙ to change board size, animation and theme.</string>
+    <string name="tutorial_back_button">Back</string>
+    <string name="tutorial_next_button">Next</string>
+    <string name="tutorial_got_it_button">Got it</string>
+
+    <!-- ===== Settings sections ===== -->
+    <string name="settings_section_board_size">BOARD SIZE</string>
+    <string name="settings_section_theme">THEME</string>
+    <string name="settings_section_animation">ANIMATION</string>
+    <string name="settings_section_appearance">APPEARANCE</string>
+    <string name="settings_section_sound">SOUND</string>
+    <string name="settings_section_stats">STATS</string>
+    <string name="settings_section_achievements">ACHIEVEMENTS</string>
+
+    <!-- ===== Settings items ===== -->
+    <string name="settings_theme_locked_format">Locked: %1$s</string>
+    <string name="settings_animation_full">Full</string>
+    <string name="settings_animation_reduced">Reduced</string>
+    <string name="settings_animation_off">Off</string>
+    <string name="settings_animation_full_desc">All animations and effects</string>
+    <string name="settings_animation_reduced_desc">Quick transitions, no long slides</string>
+    <string name="settings_animation_off_desc">Instant, no transitions</string>
+    <string name="settings_dark_mode_label">Dark mode</string>
+    <string name="settings_sound_effects_label">Sound effects</string>
+    <string name="settings_switch_on">On</string>
+    <string name="settings_switch_off">Off</string>
+    <string name="settings_achievements_progress_format">%1$d / %2$d unlocked</string>
+    <string name="settings_board_size_chip_format">%1$dx%1$d</string>
+    <string name="settings_board_size_classic">Classic</string>
+    <string name="settings_board_size_fast">Fast</string>
+    <string name="settings_board_size_large">Large</string>
+    <string name="settings_board_size_massive">Massive</string>
+
+    <!-- ===== History / Stats screen ===== -->
+    <string name="stats_card_lifetime">LIFETIME</string>
+    <string name="stats_card_last_game">LAST GAME</string>
+    <string name="stats_card_by_board_size">BY BOARD SIZE</string>
+    <string name="recent_games_section_title">RECENT GAMES</string>
+    <string name="stats_empty_message">Play your first game to see your stats here.</string>
+    <string name="stats_board_size_format">%1$dx%1$d</string>
+    <string name="stats_per_size_summary_format">best %1$d • %2$d games</string>
+    <string name="history_row_score_format">%1$d pts</string>
+    <string name="history_row_details_format">%1$d moves • max %2$d</string>
+    <string name="history_row_details_won_format">%1$d moves • max %2$d • 🏆</string>
+    <string name="time_ago_now">now</string>
+    <string name="time_ago_minutes_format">%1$dm</string>
+    <string name="time_ago_hours_format">%1$dh</string>
+    <string name="time_ago_days_format">%1$dd</string>
+    <string name="time_ago_weeks_format">%1$dw</string>
+
+    <!-- ===== Achievement toast ===== -->
+    <string name="achievement_unlocked_toast_format">%1$s Achievement Unlocked!</string>
+
+    <!-- ===== Achievement catalog (titles / descriptions / emojis) ===== -->
+    <string name="ach_first_merge_emoji">👋</string>
+    <string name="ach_first_merge_title">Hello, world</string>
+    <string name="ach_first_merge_desc">Make your first merge.</string>
+
+    <string name="ach_first_8_emoji">🪜</string>
+    <string name="ach_first_8_title">On the ladder</string>
+    <string name="ach_first_8_desc">Create a tile of 8.</string>
+
+    <string name="ach_first_32_emoji">🔟</string>
+    <string name="ach_first_32_title">Double digits</string>
+    <string name="ach_first_32_desc">Create a tile of 32.</string>
+
+    <string name="ach_first_128_emoji">1️⃣2️⃣8️⃣</string>
+    <string name="ach_first_128_title">Three digits!</string>
+    <string name="ach_first_128_desc">Create a tile of 128.</string>
+
+    <string name="ach_first_512_emoji">🔥</string>
+    <string name="ach_first_512_title">Five-twelve</string>
+    <string name="ach_first_512_desc">Create a tile of 512.</string>
+
+    <string name="ach_first_1024_emoji">💎</string>
+    <string name="ach_first_1024_title">One-zero-two-four</string>
+    <string name="ach_first_1024_desc">Create a tile of 1024.</string>
+
+    <string name="ach_first_2048_emoji">🏆</string>
+    <string name="ach_first_2048_title">The classic</string>
+    <string name="ach_first_2048_desc">Create a tile of 2048.</string>
+
+    <string name="ach_first_4096_emoji">🚀</string>
+    <string name="ach_first_4096_title">Beyond the original</string>
+    <string name="ach_first_4096_desc">Create a tile of 4096.</string>
+
+    <string name="ach_first_8192_emoji">🌌</string>
+    <string name="ach_first_8192_title">Double-overkill</string>
+    <string name="ach_first_8192_desc">Create a tile of 8192.</string>
+
+    <string name="ach_chain_5_emoji">⚡</string>
+    <string name="ach_chain_5_title">Combo starter</string>
+    <string name="ach_chain_5_desc">Merge five times in a single move.</string>
+
+    <string name="ach_chain_8_emoji">🌪️</string>
+    <string name="ach_chain_8_title">Combo master</string>
+    <string name="ach_chain_8_desc">Merge eight times in a single move.</string>
+
+    <string name="ach_moves_100_emoji">💯</string>
+    <string name="ach_moves_100_title">Practiced</string>
+    <string name="ach_moves_100_desc">Reach 100 moves in a single game.</string>
+
+    <string name="ach_moves_500_emoji">🧘</string>
+    <string name="ach_moves_500_title">Dedicated</string>
+    <string name="ach_moves_500_desc">Reach 500 moves in a single game.</string>
+
+    <string name="ach_moves_1000_emoji">🏃</string>
+    <string name="ach_moves_1000_title">Marathoner</string>
+    <string name="ach_moves_1000_desc">Reach 1000 moves in a single game.</string>
+
+    <string name="ach_score_10k_emoji">💵</string>
+    <string name="ach_score_10k_title">Five figures</string>
+    <string name="ach_score_10k_desc">Reach 10,000 in a single game.</string>
+
+    <string name="ach_score_50k_emoji">💰</string>
+    <string name="ach_score_50k_title">Five-zero-K</string>
+    <string name="ach_score_50k_desc">Reach 50,000 in a single game.</string>
+
+    <string name="ach_score_100k_emoji">🤑</string>
+    <string name="ach_score_100k_title">Six figures</string>
+    <string name="ach_score_100k_desc">Reach 100,000 in a single game.</string>
+
+    <string name="ach_games_10_emoji">🎮</string>
+    <string name="ach_games_10_title">Warming up</string>
+    <string name="ach_games_10_desc">Play 10 games.</string>
+
+    <string name="ach_games_100_emoji">💯</string>
+    <string name="ach_games_100_title">Century club</string>
+    <string name="ach_games_100_desc">Play 100 games.</string>
+
+    <string name="ach_undo_abstain_emoji">🧱</string>
+    <string name="ach_undo_abstain_title">No regrets</string>
+    <string name="ach_undo_abstain_desc">Win a game without using Undo.</string>
+
+    <string name="ach_fast_1024_emoji">⏱️</string>
+    <string name="ach_fast_1024_title">Speed cuber</string>
+    <string name="ach_fast_1024_desc">Reach 1024 within 50 moves.</string>
+
+    <string name="ach_small_board_emoji">🧩</string>
+    <string name="ach_small_board_title">Compact expert</string>
+    <string name="ach_small_board_desc">Win on a 3x3 board.</string>
+
+    <string name="ach_big_board_emoji">🗺️</string>
+    <string name="ach_big_board_title">Big board boss</string>
+    <string name="ach_big_board_desc">Win on a 5x5 board.</string>
+
+    <string name="ach_max_board_emoji">🧭</string>
+    <string name="ach_max_board_title">Marathon board</string>
+    <string name="ach_max_board_desc">Win on a 6x6 board.</string>
+
+    <!-- ===== Game themes ===== -->
+    <string name="theme_classic_name">Classic</string>
+    <string name="theme_classic_unlock">Always available</string>
+    <string name="theme_dark_name">Midnight</string>
+    <string name="theme_dark_unlock">Play 5 games</string>
+    <string name="theme_neon_name">Neon</string>
+    <string name="theme_neon_unlock">Reach 1024 tile</string>
+</resources>

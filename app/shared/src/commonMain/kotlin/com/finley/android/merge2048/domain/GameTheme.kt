@@ -1,15 +1,25 @@
 package com.finley.android.merge2048.domain
 
+import org.jetbrains.compose.resources.StringResource
 import androidx.compose.ui.graphics.Color
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.theme_classic_name
+import merge2048.app.shared.generated.resources.theme_classic_unlock
+import merge2048.app.shared.generated.resources.theme_dark_name
+import merge2048.app.shared.generated.resources.theme_dark_unlock
+import merge2048.app.shared.generated.resources.theme_neon_name
+import merge2048.app.shared.generated.resources.theme_neon_unlock
 
 /**
  * Theme definitions for the game. Each theme provides a complete color palette
  * for all game elements. Themes are unlockable based on game achievements.
+ *
+ * User-visible fields are backed by i18n resources so the UI can be translated.
  */
 sealed class GameTheme(
     val id: String,
-    val displayName: String,
-    val unlockRequirement: String
+    val displayName: StringResource,
+    val unlockRequirement: StringResource
 ) {
     /** All available themes. */
     companion object {
@@ -43,8 +53,8 @@ sealed class GameTheme(
     // ---------- Classic Theme ----------
     data object Classic : GameTheme(
         id = "classic",
-        displayName = "Classic",
-        unlockRequirement = "Always available"
+        displayName = Res.string.theme_classic_name,
+        unlockRequirement = Res.string.theme_classic_unlock
     ) {
         override val appBackground = Color(0xFFFAF8EF)
         override val surface = Color(0xFFFFFFFF)
@@ -80,8 +90,8 @@ sealed class GameTheme(
     // ---------- Dark Theme ----------
     data object Dark : GameTheme(
         id = "dark",
-        displayName = "Midnight",
-        unlockRequirement = "Play 5 games"
+        displayName = Res.string.theme_dark_name,
+        unlockRequirement = Res.string.theme_dark_unlock
     ) {
         override val appBackground = Color(0xFF1A1A2E)
         override val surface = Color(0xFF16213E)
@@ -117,8 +127,8 @@ sealed class GameTheme(
     // ---------- Neon Theme ----------
     data object Neon : GameTheme(
         id = "neon",
-        displayName = "Neon",
-        unlockRequirement = "Reach 1024 tile"
+        displayName = Res.string.theme_neon_name,
+        unlockRequirement = Res.string.theme_neon_unlock
     ) {
         override val appBackground = Color(0xFF0D0D0D)
         override val surface = Color(0xFF1A1A1A)

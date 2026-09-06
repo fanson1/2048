@@ -25,7 +25,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.game_over_avg_merge_label
+import merge2048.app.shared.generated.resources.game_over_avg_merge_zero
+import merge2048.app.shared.generated.resources.game_over_best_label
+import merge2048.app.shared.generated.resources.game_over_close
+import merge2048.app.shared.generated.resources.game_over_efficiency_format
+import merge2048.app.shared.generated.resources.game_over_efficiency_label
+import merge2048.app.shared.generated.resources.game_over_efficiency_zero
+import merge2048.app.shared.generated.resources.game_over_max_label
+import merge2048.app.shared.generated.resources.game_over_merges_label
+import merge2048.app.shared.generated.resources.game_over_moves_label
+import merge2048.app.shared.generated.resources.game_over_msg_default
+import merge2048.app.shared.generated.resources.game_over_msg_decent
+import merge2048.app.shared.generated.resources.game_over_msg_good_effort
+import merge2048.app.shared.generated.resources.game_over_msg_great
+import merge2048.app.shared.generated.resources.game_over_msg_incredible
+import merge2048.app.shared.generated.resources.game_over_msg_legendary
+import merge2048.app.shared.generated.resources.game_over_msg_nice
+import merge2048.app.shared.generated.resources.game_over_msg_strong_score
+import merge2048.app.shared.generated.resources.game_over_new_record_title
+import merge2048.app.shared.generated.resources.game_over_play_again
+import merge2048.app.shared.generated.resources.game_over_score_label
+import merge2048.app.shared.generated.resources.game_over_title
 import com.finley.android.merge2048.GameColors
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Enhanced game-over summary modal showing detailed session stats.
@@ -68,7 +93,8 @@ fun GameOverSummary(
             ) {
                 // Title
                 Text(
-                    text = if (isNewBest) "NEW RECORD!" else "GAME OVER",
+                    text = if (isNewBest) stringResource(Res.string.game_over_new_record_title)
+                    else stringResource(Res.string.game_over_title),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Black,
                     color = if (isNewBest) GameColors.Tile2048 else Color.White
@@ -93,7 +119,7 @@ fun GameOverSummary(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "SCORE",
+                        text = stringResource(Res.string.game_over_score_label),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.5.sp,
@@ -114,9 +140,19 @@ fun GameOverSummary(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    SummaryStat(label = "BEST", value = bestScore.toString())
-                    SummaryStat(label = "MAX", value = maxTile.toString(), accent = GameColors.Tile2048)
-                    SummaryStat(label = "MOVES", value = moveCount.toString())
+                    SummaryStat(
+                        label = stringResource(Res.string.game_over_best_label),
+                        value = bestScore.toString()
+                    )
+                    SummaryStat(
+                        label = stringResource(Res.string.game_over_max_label),
+                        value = maxTile.toString(),
+                        accent = GameColors.Tile2048
+                    )
+                    SummaryStat(
+                        label = stringResource(Res.string.game_over_moves_label),
+                        value = moveCount.toString()
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -125,16 +161,19 @@ fun GameOverSummary(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     SummaryStat(
-                        label = "MERGES",
+                        label = stringResource(Res.string.game_over_merges_label),
                         value = totalMerges.toString()
                     )
                     SummaryStat(
-                        label = "AVG MERGE",
-                        value = if (totalMerges > 0) (score / totalMerges).toString() else "0"
+                        label = stringResource(Res.string.game_over_avg_merge_label),
+                        value = if (totalMerges > 0) (score / totalMerges).toString()
+                        else stringResource(Res.string.game_over_avg_merge_zero)
                     )
                     SummaryStat(
-                        label = "EFFICIENCY",
-                        value = if (moveCount > 0) "${(totalMerges * 100 / moveCount)}%" else "0%"
+                        label = stringResource(Res.string.game_over_efficiency_label),
+                        value = if (moveCount > 0)
+                            stringResource(Res.string.game_over_efficiency_format, totalMerges * 100 / moveCount)
+                        else stringResource(Res.string.game_over_efficiency_zero)
                     )
                 }
 
@@ -154,7 +193,7 @@ fun GameOverSummary(
                     )
                 ) {
                     Text(
-                        text = "PLAY AGAIN",
+                        text = stringResource(Res.string.game_over_play_again),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp,
@@ -165,7 +204,7 @@ fun GameOverSummary(
                 Spacer(modifier = Modifier.height(4.dp))
                 TextButton(onClick = onDismiss) {
                     Text(
-                        text = "CLOSE",
+                        text = stringResource(Res.string.game_over_close),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White.copy(alpha = 0.4f)
@@ -199,15 +238,16 @@ private fun SummaryStat(
     }
 }
 
+@Composable
 private fun getEncouragementMessage(maxTile: Int, score: Int): String {
     return when {
-        maxTile >= 4096 -> "Legendary performance! You are a master!"
-        maxTile >= 2048 -> "Incredible! The 2048 tile is no small feat!"
-        maxTile >= 1024 -> "Great game! You're getting close to 2048!"
-        maxTile >= 512 -> "Nice run! Keep pushing for bigger tiles!"
-        maxTile >= 256 -> "Good effort! Every merge counts!"
-        score >= 5000 -> "Strong score! Try for a higher max tile next time!"
-        score >= 2000 -> "Decent game! Focus on building up large tiles."
-        else -> "Every game teaches you something new. Try again!"
+        maxTile >= 4096 -> stringResource(Res.string.game_over_msg_legendary)
+        maxTile >= 2048 -> stringResource(Res.string.game_over_msg_incredible)
+        maxTile >= 1024 -> stringResource(Res.string.game_over_msg_great)
+        maxTile >= 512 -> stringResource(Res.string.game_over_msg_nice)
+        maxTile >= 256 -> stringResource(Res.string.game_over_msg_good_effort)
+        score >= 5000 -> stringResource(Res.string.game_over_msg_strong_score)
+        score >= 2000 -> stringResource(Res.string.game_over_msg_decent)
+        else -> stringResource(Res.string.game_over_msg_default)
     }
 }

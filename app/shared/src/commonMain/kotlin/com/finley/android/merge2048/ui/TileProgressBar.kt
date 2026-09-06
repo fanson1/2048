@@ -15,7 +15,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.progress_next_tile_format
+import merge2048.app.shared.generated.resources.progress_percentage_format
 import com.finley.android.merge2048.GameColors
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Shows progress toward the next power-of-2 tile. The progress is calculated
@@ -70,7 +74,7 @@ fun TileProgressBar(
                 color = GameColors.SubText
             )
             Text(
-                text = "Next: $nextPower",
+                text = stringResource(Res.string.progress_next_tile_format, nextPower),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
                 color = GameColors.SubText
@@ -106,7 +110,7 @@ fun TileProgressBar(
 
         Spacer(modifier = Modifier.height(2.dp))
         Text(
-            text = "${(animatedProgress * 100).toInt()}%",
+            text = stringResource(Res.string.progress_percentage_format, (animatedProgress * 100).toInt()),
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             color = GameColors.SubText,

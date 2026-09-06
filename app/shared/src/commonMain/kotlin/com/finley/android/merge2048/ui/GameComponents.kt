@@ -33,6 +33,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.combo_badge_text_format
+import merge2048.app.shared.generated.resources.icon_undo
+import merge2048.app.shared.generated.resources.new_game_button_desc
+import merge2048.app.shared.generated.resources.new_game_button_text
+import merge2048.app.shared.generated.resources.overlay_best_label
+import merge2048.app.shared.generated.resources.overlay_close_button
+import merge2048.app.shared.generated.resources.overlay_max_label
+import merge2048.app.shared.generated.resources.overlay_score_label
+import merge2048.app.shared.generated.resources.placeholder_em_dash
+import merge2048.app.shared.generated.resources.score_block_content_desc_format
+import merge2048.app.shared.generated.resources.undo_button_desc
+import merge2048.app.shared.generated.resources.undo_button_desc_with_count
+import merge2048.app.shared.generated.resources.undo_button_text
+import merge2048.app.shared.generated.resources.undo_button_text_with_count
+import org.jetbrains.compose.resources.stringResource
 import com.finley.android.merge2048.GameColors
 
 /**
@@ -52,7 +68,7 @@ fun ScoreBlock(
             .clip(RoundedCornerShape(10.dp))
             .background(GameColors.ScoreBlockBackground)
             .semantics {
-                contentDescription = "$label $value"
+                contentDescription = "${label} ${value}"
                 liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite
             }
             .padding(
@@ -146,7 +162,14 @@ fun UndoButton(
     undoCount: Int = 0,
     onClick: () -> Unit
 ) {
-    val desc = if (undoCount > 0) "Undo, $undoCount remaining" else "Undo"
+    val desc = if (undoCount > 0)
+        stringResource(Res.string.undo_button_desc_with_count, undoCount)
+    else
+        stringResource(Res.string.undo_button_desc)
+    val text = if (undoCount > 0)
+        stringResource(Res.string.undo_button_text_with_count, undoCount)
+    else
+        stringResource(Res.string.undo_button_text)
     Button(
         onClick = onClick,
         enabled = enabled,
@@ -163,7 +186,7 @@ fun UndoButton(
         modifier = Modifier.semantics { contentDescription = desc }
     ) {
         Text(
-            text = if (undoCount > 0) "\u21A9 $undoCount" else "\u21A9",
+            text = text,
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
@@ -176,6 +199,7 @@ fun UndoButton(
 fun NewGameButton(
     onClick: () -> Unit
 ) {
+    val newGameDesc = stringResource(Res.string.new_game_button_desc)
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
@@ -187,10 +211,12 @@ fun NewGameButton(
             defaultElevation = 3.dp,
             pressedElevation = 1.dp
         ),
-        modifier = Modifier.semantics { contentDescription = "New Game" }
+        modifier = Modifier.semantics {
+            contentDescription = newGameDesc
+        }
     ) {
         Text(
-            text = "NEW",
+            text = stringResource(Res.string.new_game_button_text),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
@@ -213,6 +239,10 @@ fun GameOverlay(
     highlight: Color,
     onDismiss: (() -> Unit)? = null
 ) {
+    val maxTileValue = if (maxTile == 0)
+        stringResource(Res.string.placeholder_em_dash)
+    else
+        maxTile.toString()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -252,7 +282,7 @@ fun GameOverlay(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "SCORE",
+                    text = stringResource(Res.string.overlay_score_label),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.sp,
@@ -268,10 +298,13 @@ fun GameOverlay(
 
             Spacer(modifier = Modifier.height(14.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                OverlayStat(label = "BEST", value = bestScore.toString())
                 OverlayStat(
-                    label = "MAX",
-                    value = if (maxTile == 0) "\u2014" else maxTile.toString(),
+                    label = stringResource(Res.string.overlay_best_label),
+                    value = bestScore.toString()
+                )
+                OverlayStat(
+                    label = stringResource(Res.string.overlay_max_label),
+                    value = maxTileValue,
                     accent = GameColors.Tile2048
                 )
             }
@@ -315,7 +348,7 @@ fun GameOverlay(
                     onClick = onDismiss
                 ) {
                     Text(
-                        text = "Close",
+                        text = stringResource(Res.string.overlay_close_button),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = GameColors.SubText.copy(alpha = 0.5f)
@@ -355,10 +388,30 @@ fun ComboBadge(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "x$count",
+            text = stringResource(Res.string.combo_badge_text_format, count),
             fontSize = 11.sp,
             fontWeight = FontWeight.ExtraBold,
             color = Color.White
+        )
+    }
+}
+
+@Composable
+fun StatRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            color = GameColors.SubText
+        )
+        Text(
+            text = value,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = GameColors.HeaderText
         )
     }
 }

@@ -16,7 +16,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.tutorial_back_button
+import merge2048.app.shared.generated.resources.tutorial_got_it_button
+import merge2048.app.shared.generated.resources.tutorial_next_button
+import merge2048.app.shared.generated.resources.tutorial_step_1_body
+import merge2048.app.shared.generated.resources.tutorial_step_1_emoji
+import merge2048.app.shared.generated.resources.tutorial_step_1_title
+import merge2048.app.shared.generated.resources.tutorial_step_2_body
+import merge2048.app.shared.generated.resources.tutorial_step_2_emoji
+import merge2048.app.shared.generated.resources.tutorial_step_2_title
+import merge2048.app.shared.generated.resources.tutorial_step_3_body
+import merge2048.app.shared.generated.resources.tutorial_step_3_emoji
+import merge2048.app.shared.generated.resources.tutorial_step_3_title
 import com.finley.android.merge2048.GameColors
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Three-step first-launch tutorial. Shown once when [visible] is true.
@@ -32,19 +47,19 @@ fun TutorialOverlay(
     var step by remember { mutableStateOf(0) }
     val steps = listOf(
         TutorialStep(
-            emoji = "🎮",
-            title = "Welcome to Merge2048",
-            body = "Swipe up, down, left or right to move all tiles. When two tiles with the same number touch, they merge into one!"
+            emoji = Res.string.tutorial_step_1_emoji,
+            title = Res.string.tutorial_step_1_title,
+            body = Res.string.tutorial_step_1_body
         ),
         TutorialStep(
-            emoji = "🎯",
-            title = "Reach 2048",
-            body = "Your goal is to create a tile with 2048. Keep merging to push your best score higher and unlock achievements."
+            emoji = Res.string.tutorial_step_2_emoji,
+            title = Res.string.tutorial_step_2_title,
+            body = Res.string.tutorial_step_2_body
         ),
         TutorialStep(
-            emoji = "💪",
-            title = "You're in control",
-            body = "Tap UNDO to take back a move, NEW GAME to start over, or ⚙ to change board size, animation and theme."
+            emoji = Res.string.tutorial_step_3_emoji,
+            title = Res.string.tutorial_step_3_title,
+            body = Res.string.tutorial_step_3_body
         )
     )
     val current = steps[step.coerceIn(0, steps.lastIndex)]
@@ -76,13 +91,13 @@ fun TutorialOverlay(
                 val item = steps[s.coerceIn(0, steps.lastIndex)]
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = item.emoji,
+                        text = stringResource(item.emoji),
                         fontSize = 56.sp,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = item.title,
+                        text = stringResource(item.title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black,
                         color = GameColors.HeaderText,
@@ -90,7 +105,7 @@ fun TutorialOverlay(
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = item.body,
+                        text = stringResource(item.body),
                         fontSize = 14.sp,
                         color = GameColors.SubText,
                         textAlign = TextAlign.Center,
@@ -127,7 +142,7 @@ fun TutorialOverlay(
                             .padding(horizontal = 20.dp, vertical = 10.dp)
                     ) {
                         Text(
-                            text = "Back",
+                            text = stringResource(Res.string.tutorial_back_button),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = GameColors.SubText
@@ -144,7 +159,10 @@ fun TutorialOverlay(
                         .padding(horizontal = 24.dp, vertical = 12.dp)
                 ) {
                     Text(
-                        text = if (step < steps.lastIndex) "Next" else "Got it",
+                        text = if (step < steps.lastIndex)
+                            stringResource(Res.string.tutorial_next_button)
+                        else
+                            stringResource(Res.string.tutorial_got_it_button),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color.White
@@ -156,7 +174,7 @@ fun TutorialOverlay(
 }
 
 private data class TutorialStep(
-    val emoji: String,
-    val title: String,
-    val body: String
+    val emoji: StringResource,
+    val title: StringResource,
+    val body: StringResource
 )

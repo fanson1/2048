@@ -17,9 +17,38 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.history_row_details_format
+import merge2048.app.shared.generated.resources.history_row_details_won_format
+import merge2048.app.shared.generated.resources.history_row_score_format
+import merge2048.app.shared.generated.resources.icon_back_arrow
+import merge2048.app.shared.generated.resources.placeholder_em_dash
+import merge2048.app.shared.generated.resources.recent_games_section_title
+import merge2048.app.shared.generated.resources.screen_stats_history_title
+import merge2048.app.shared.generated.resources.stat_label_avg_score
+import merge2048.app.shared.generated.resources.stat_label_best_max
+import merge2048.app.shared.generated.resources.stat_label_best_move
+import merge2048.app.shared.generated.resources.stat_label_best_score
+import merge2048.app.shared.generated.resources.stat_label_games
+import merge2048.app.shared.generated.resources.stat_label_max_tile
+import merge2048.app.shared.generated.resources.stat_label_score
+import merge2048.app.shared.generated.resources.stat_label_win_rate
+import merge2048.app.shared.generated.resources.stat_value_win_rate_format
+import merge2048.app.shared.generated.resources.stats_board_size_format
+import merge2048.app.shared.generated.resources.stats_card_by_board_size
+import merge2048.app.shared.generated.resources.stats_card_last_game
+import merge2048.app.shared.generated.resources.stats_card_lifetime
+import merge2048.app.shared.generated.resources.stats_empty_message
+import merge2048.app.shared.generated.resources.stats_per_size_summary_format
+import merge2048.app.shared.generated.resources.time_ago_days_format
+import merge2048.app.shared.generated.resources.time_ago_hours_format
+import merge2048.app.shared.generated.resources.time_ago_minutes_format
+import merge2048.app.shared.generated.resources.time_ago_now
+import merge2048.app.shared.generated.resources.time_ago_weeks_format
 import com.finley.android.merge2048.GameColors
 import com.finley.android.merge2048.domain.GameRecord
 import com.finley.android.merge2048.domain.LifetimeStats
+import org.jetbrains.compose.resources.stringResource
 
 /**
  * Stats + history screen. Shows lifetime aggregates at the top, the last
@@ -31,6 +60,7 @@ fun HistoryScreen(
     records: List<GameRecord>,
     onBack: () -> Unit
 ) {
+    val emDash = stringResource(Res.string.placeholder_em_dash)
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,7 +71,7 @@ fun HistoryScreen(
         // ---- Header ----
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "\u2190",
+                text = stringResource(Res.string.icon_back_arrow),
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Light,
                 color = GameColors.HeaderText,
@@ -50,7 +80,7 @@ fun HistoryScreen(
                     .padding(end = 12.dp)
             )
             Text(
-                text = "Stats & History",
+                text = stringResource(Res.string.screen_stats_history_title),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Black,
                 color = GameColors.HeaderText
@@ -60,30 +90,30 @@ fun HistoryScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // ---- Lifetime aggregates card ----
-        StatsCard(title = "LIFETIME") {
+        StatsCard(title = stringResource(Res.string.stats_card_lifetime)) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 StatBlock(
-                    label = "GAMES",
+                    label = stringResource(Res.string.stat_label_games),
                     value = stats.gamesPlayed.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatBlock(
-                    label = "WIN RATE",
-                    value = if (stats.gamesPlayed == 0) "—"
-                    else "${(stats.winRate * 100).toInt()}%",
+                    label = stringResource(Res.string.stat_label_win_rate),
+                    value = if (stats.gamesPlayed == 0) emDash
+                    else stringResource(Res.string.stat_value_win_rate_format, (stats.winRate * 100).toInt()),
                     modifier = Modifier.weight(1f)
                 )
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
                 StatBlock(
-                    label = "BEST SCORE",
+                    label = stringResource(Res.string.stat_label_best_score),
                     value = stats.bestScore.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatBlock(
-                    label = "BEST MAX",
-                    value = if (stats.bestMaxTile == 0) "—" else stats.bestMaxTile.toString(),
+                    label = stringResource(Res.string.stat_label_best_max),
+                    value = if (stats.bestMaxTile == 0) emDash else stats.bestMaxTile.toString(),
                     accent = GameColors.Tile2048,
                     modifier = Modifier.weight(1f)
                 )
@@ -91,12 +121,12 @@ fun HistoryScreen(
             Spacer(modifier = Modifier.height(10.dp))
             Row(modifier = Modifier.fillMaxWidth()) {
                 StatBlock(
-                    label = "AVG SCORE",
+                    label = stringResource(Res.string.stat_label_avg_score),
                     value = stats.averageScore.toString(),
                     modifier = Modifier.weight(1f)
                 )
                 StatBlock(
-                    label = "BEST MOVE",
+                    label = stringResource(Res.string.stat_label_best_move),
                     value = stats.bestSingleMove.toString(),
                     modifier = Modifier.weight(1f)
                 )
@@ -107,15 +137,15 @@ fun HistoryScreen(
         val lastRecord = records.firstOrNull()
         if (lastRecord != null && lastRecord.scoreOverTime.size > 1) {
             Spacer(modifier = Modifier.height(20.dp))
-            StatsCard(title = "LAST GAME") {
+            StatsCard(title = stringResource(Res.string.stats_card_last_game)) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     StatBlock(
-                        label = "SCORE",
+                        label = stringResource(Res.string.stat_label_score),
                         value = lastRecord.score.toString(),
                         modifier = Modifier.weight(1f)
                     )
                     StatBlock(
-                        label = "MAX TILE",
+                        label = stringResource(Res.string.stat_label_max_tile),
                         value = lastRecord.maxTile.toString(),
                         accent = GameColors.Tile2048,
                         modifier = Modifier.weight(1f)
@@ -134,7 +164,7 @@ fun HistoryScreen(
         // ---- Per board size ----
         if (stats.perBoardSize.isNotEmpty()) {
             Spacer(modifier = Modifier.height(20.dp))
-            StatsCard(title = "BY BOARD SIZE") {
+            StatsCard(title = stringResource(Res.string.stats_card_by_board_size)) {
                 for ((size, s) in stats.perBoardSize.toSortedMap()) {
                     Row(
                         modifier = Modifier
@@ -143,13 +173,17 @@ fun HistoryScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(
-                            text = "${size}x$size",
+                            text = stringResource(Res.string.stats_board_size_format, size),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = GameColors.HeaderText
                         )
                         Text(
-                            text = "best ${s.bestScore} \u2022 ${s.gamesPlayed} games",
+                            text = stringResource(
+                                Res.string.stats_per_size_summary_format,
+                                s.bestScore,
+                                s.gamesPlayed
+                            ),
                             fontSize = 12.sp,
                             color = GameColors.SubText
                         )
@@ -162,7 +196,7 @@ fun HistoryScreen(
         if (records.isNotEmpty()) {
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "RECENT GAMES",
+                text = stringResource(Res.string.recent_games_section_title),
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.5.sp,
@@ -176,7 +210,7 @@ fun HistoryScreen(
         } else {
             Spacer(modifier = Modifier.height(40.dp))
             Text(
-                text = "Play your first game to see your stats here.",
+                text = stringResource(Res.string.stats_empty_message),
                 fontSize = 14.sp,
                 color = GameColors.SubText,
                 textAlign = TextAlign.Center,
@@ -246,7 +280,7 @@ private fun GameRecordRow(record: GameRecord) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = record.boardSize.toString() + "x" + record.boardSize,
+            text = stringResource(Res.string.stats_board_size_format, record.boardSize),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             color = GameColors.SubText,
@@ -254,13 +288,16 @@ private fun GameRecordRow(record: GameRecord) {
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "${record.score} pts",
+                text = stringResource(Res.string.history_row_score_format, record.score),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = GameColors.HeaderText
             )
             Text(
-                text = "${record.moveCount} moves \u2022 max ${record.maxTile}${if (record.won) " \u2022 \uD83C\uDFC6" else ""}",
+                text = if (record.won)
+                    stringResource(Res.string.history_row_details_won_format, record.moveCount, record.maxTile)
+                else
+                    stringResource(Res.string.history_row_details_format, record.moveCount, record.maxTile),
                 fontSize = 11.sp,
                 color = GameColors.SubText
             )
@@ -273,7 +310,8 @@ private fun GameRecordRow(record: GameRecord) {
     }
 }
 
-/** Lightweight, locale-free "x minutes ago" formatter for compact timestamps. */
+/** Lightweight "x minutes ago" formatter. Uses stringResource so each label is localizable. */
+@Composable
 private fun formatTimeAgo(epochMs: Long): String {
     val now = kotlin.time.Clock.System.now().toEpochMilliseconds()
     val delta = (now - epochMs).coerceAtLeast(0)
@@ -281,10 +319,10 @@ private fun formatTimeAgo(epochMs: Long): String {
     val hour = 60 * minute
     val day = 24 * hour
     return when {
-        delta < minute -> "now"
-        delta < hour -> "${delta / minute}m"
-        delta < day -> "${delta / hour}h"
-        delta < 7 * day -> "${delta / day}d"
-        else -> "${delta / (7 * day)}w"
+        delta < minute -> stringResource(Res.string.time_ago_now)
+        delta < hour -> stringResource(Res.string.time_ago_minutes_format, (delta / minute).toInt())
+        delta < day -> stringResource(Res.string.time_ago_hours_format, (delta / hour).toInt())
+        delta < 7 * day -> stringResource(Res.string.time_ago_days_format, (delta / day).toInt())
+        else -> stringResource(Res.string.time_ago_weeks_format, (delta / (7 * day)).toInt())
     }
 }

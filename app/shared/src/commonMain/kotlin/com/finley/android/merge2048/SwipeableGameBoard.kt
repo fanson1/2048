@@ -47,7 +47,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.board_swipe_to_play
+import merge2048.app.shared.generated.resources.tile_content_desc_empty
+import merge2048.app.shared.generated.resources.tile_content_desc_value
 import com.finley.android.merge2048.domain.Direction
+import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 
 private const val SWIPE_THRESHOLD_DP = 20f
@@ -193,7 +198,7 @@ fun SwipeableGameBoard(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Swipe to play",
+                            text = stringResource(Res.string.board_swipe_to_play),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = GameColors.HeaderText.copy(alpha = alpha * 0.6f),
@@ -238,12 +243,15 @@ fun GameTile(
         modifier.fillMaxSize()
     }
 
+    val tileDesc = if (value == 0) stringResource(Res.string.tile_content_desc_empty)
+        else stringResource(Res.string.tile_content_desc_value, value)
+
     Box(
         modifier = baseModifier
             .clip(RoundedCornerShape(8.dp))
             .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value))
             .semantics {
-                contentDescription = if (value == 0) "empty" else "Tile $value"
+                contentDescription = tileDesc
             },
         contentAlignment = Alignment.Center
     ) {
