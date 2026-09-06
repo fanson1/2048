@@ -338,20 +338,20 @@ private fun AnimatedTile(
         }
 
         // --- Main tile + optional ghost tile for merge animation ---
-        // The outer Box handles layout (background, semantics) but NOT the sliding
-        // graphicsLayer.  The sliding layer is applied to a child so that the ghost
-        // tile's own graphicsLayer is independent — otherwise the two translations
-        // would stack and push the ghost far off-screen.
+        // The background lives INSIDE the graphicsLayer (inner Box) so it
+        // transforms together with the Text.  Previously the background was on
+        // the outer Box while the Text was in the inner Box with graphicsLayer —
+        // during any animation the background stayed put while the number moved
+        // away or scaled down, making tiles appear as "background only, no number".
         Box(
             modifier = glowModifier
-                .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value), RoundedCornerShape(8.dp))
                 .semantics {
                     contentDescription = if (value == 0) tileDescEmpty
                     else tileDescValue.replace("%1\$d", value.toString())
                 },
             contentAlignment = Alignment.Center
         ) {
-            // Main tile content — slides from previous position and scales on merge/spawn.
+            // Main tile content — background + text slide/scale together.
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -360,7 +360,8 @@ private fun AnimatedTile(
                         translationY = offsetY.value * size.height
                         scaleX = scale.value * scalePulse
                         scaleY = scale.value * scalePulse
-                    },
+                    }
+                    .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 if (value != 0) {

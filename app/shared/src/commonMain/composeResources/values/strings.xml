@@ -16,7 +16,7 @@
 
     <!-- ===== Game screen (main) ===== -->
     <string name="game_title_2048">2048</string>
-    <string name="game_how_to_play_label">HOW TO PLAY</string>
+    <string name="game_how_to_play_label">PLAY</string>
     <string name="game_footer_controls_hint">Swipe or use arrow keys / WASD • R to restart • Undo to go back</string>
     <string name="game_footer_signature">Made for fun • Merge2048</string>
 
