@@ -56,10 +56,20 @@ class GameViewModel(
                 }
                 // Only auto-save in-progress games that are not over and not won
                 // (so the player can resume from where they left off).
-                if (!current.isGameOver) {
+                if (!current.isGameOver && !current.isTimedMode) {
                     gameRepository.save(GameSnapshot.fromState(current))
                 } else {
                     gameRepository.clear()
+                }
+            }
+        }
+
+        // Timed challenge countdown ticker
+        viewModelScope.launch {
+            _state.collect { current ->
+                if (current.isTimedMode && current.timedRemainingSeconds > 0) {
+                    kotlinx.coroutines.delay(1000)
+                    onIntent(GameIntent.TimerTick)
                 }
             }
         }
@@ -102,12 +112,18 @@ class GameViewModel(
                 }
             }
             is GameIntent.NewGame -> soundService.play(SoundEvent.NewGame)
+            is GameIntent.StartDailyChallenge -> soundService.play(SoundEvent.NewGame)
+            is GameIntent.ChangeBoardSize -> soundService.play(SoundEvent.NewGame)
+            is GameIntent.StartTimedChallenge -> soundService.play(SoundEvent.NewGame)
+            is GameIntent.TimerTick -> { /* silent */ }
+            is GameIntent.TimerExpired -> soundService.play(SoundEvent.GameOver)
             is GameIntent.Undo -> soundService.play(SoundEvent.Undo)
             is GameIntent.RestoreGame -> { /* silent */ }
             is GameIntent.ApplyPreferences -> { /* silent */ }
             is GameIntent.ConsumeAchievement -> soundService.play(SoundEvent.Achievement)
             is GameIntent.DismissWinDialog -> { /* silent */ }
             is GameIntent.ContinueAfterWin -> { /* silent */ }
+            else -> {}
         }
     }
 

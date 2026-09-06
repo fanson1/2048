@@ -18,10 +18,21 @@ class GameReducer(
     private var didUseUndoThisGame: Boolean = false
     private var winDialogShown: Boolean = false
 
+    // Timed challenge state
+    private var isTimedMode: Boolean = false
+    private var timedRemainingSeconds: Int = 0
+    private var timedDurationSeconds: Int = 0
+    private var timedBestScore: Int = 0
+
     fun reduce(previous: GameState, intent: GameIntent): GameState {
         return when (intent) {
             is GameIntent.Move -> handleMove(previous, intent.direction)
             is GameIntent.NewGame -> handleNewGame()
+            is GameIntent.StartDailyChallenge -> handleDailyChallenge(intent.boardSize, intent.seed)
+            is GameIntent.ChangeBoardSize -> handleChangeBoardSize(intent.boardSize)
+            is GameIntent.StartTimedChallenge -> handleTimedChallenge(intent.boardSize, intent.durationSeconds)
+            is GameIntent.TimerTick -> handleTimerTick()
+            is GameIntent.TimerExpired -> handleTimerExpired()
             is GameIntent.DismissWinDialog -> previous.copy(showWinDialog = false)
             is GameIntent.ContinueAfterWin -> previous.copy(showWinDialog = false)
             is GameIntent.Undo -> handleUndo(previous)
@@ -29,6 +40,65 @@ class GameReducer(
             is GameIntent.ApplyPreferences -> handleApplyPrefs(previous, intent)
             is GameIntent.ConsumeAchievement -> handleConsumeAchievement(previous, intent.id)
         }
+    }
+
+    /**
+     * Compute a deterministic seed from today's date so all players get the same board.
+     * Platform layer should call this to get today's seed:
+     *   val epoch2024 = 1704067200000L
+     *   val dayNumber = ((System.currentTimeMillis() - epoch2024) / (24L * 60 * 60 * 1000)).toInt()
+     *   val seed = dayNumber * 7919 + 1
+     */
+    private fun handleDailyChallenge(boardSize: Int, seed: Int): GameState {
+        engine = GameEngine(boardSize = boardSize, seed = seed)
+        didUseUndoThisGame = false
+        winDialogShown = false
+        pendingAchievements.clear()
+        return emitState()
+    }
+
+    private fun handleChangeBoardSize(boardSize: Int): GameState {
+        prefs = prefs.copy(boardSize = boardSize)
+        engine = GameEngine(boardSize = boardSize)
+        didUseUndoThisGame = false
+        winDialogShown = false
+        pendingAchievements.clear()
+        val newGamesPlayed = prefs.gamesPlayed + 1
+        prefs = prefs.copy(gamesPlayed = newGamesPlayed)
+        return emitState()
+    }
+
+    private fun handleTimedChallenge(boardSize: Int, durationSeconds: Int): GameState {
+        prefs = prefs.copy(boardSize = boardSize)
+        engine = GameEngine(boardSize = boardSize)
+        didUseUndoThisGame = false
+        winDialogShown = false
+        pendingAchievements.clear()
+        isTimedMode = true
+        timedRemainingSeconds = durationSeconds
+        timedDurationSeconds = durationSeconds
+        timedBestScore = 0
+        return emitState()
+    }
+
+    private fun handleTimerTick(): GameState {
+        if (!isTimedMode || timedRemainingSeconds <= 0) return emitState()
+        timedRemainingSeconds--
+        // Track best score during timed mode
+        if (engine.score > timedBestScore) {
+            timedBestScore = engine.score
+        }
+        if (timedRemainingSeconds <= 0) {
+            return handleTimerExpired()
+        }
+        return emitState()
+    }
+
+    private fun handleTimerExpired(): GameState {
+        isTimedMode = false
+        timedRemainingSeconds = 0
+        // The game continues but timed mode is over — player sees their final score
+        return emitState()
     }
 
     private fun handleMove(previous: GameState, direction: Direction): GameState {
@@ -172,7 +242,12 @@ class GameReducer(
             comboCount = engine.comboCount,
             comboMultiplier = engine.comboMultiplier,
             lastMergePositions = engine.lastMergePositions,
-            totalMerges = engine.totalMergesThisGame
+            totalMerges = engine.totalMergesThisGame,
+            moveAnimationData = engine.lastMoveAnimationData,
+            isTimedMode = isTimedMode,
+            timedRemainingSeconds = timedRemainingSeconds,
+            timedDurationSeconds = timedDurationSeconds,
+            timedBestScore = timedBestScore
         )
     }
 

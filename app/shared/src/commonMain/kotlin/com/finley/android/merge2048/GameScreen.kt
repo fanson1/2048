@@ -45,13 +45,18 @@ import merge2048.app.shared.generated.resources.stat_label_best
 import merge2048.app.shared.generated.resources.stat_label_max
 import merge2048.app.shared.generated.resources.stat_label_moves
 import merge2048.app.shared.generated.resources.stat_label_score
+import com.finley.android.merge2048.data.createShareService
+import com.finley.android.merge2048.data.ShareService
 import com.finley.android.merge2048.domain.Direction
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameState
+import com.finley.android.merge2048.domain.MoveAnimationData
 import com.finley.android.merge2048.presentation.GameViewModel
 import com.finley.android.merge2048.presentation.rememberGameViewModel
 import com.finley.android.merge2048.ui.ComboBadge
+import com.finley.android.merge2048.ui.BoardSizeSelector
 import com.finley.android.merge2048.ui.ConfettiCelebration
+import com.finley.android.merge2048.ui.DailyChallengeButton
 import com.finley.android.merge2048.ui.GameOverSummary
 import com.finley.android.merge2048.ui.GameOverlay
 import com.finley.android.merge2048.ui.MergePopups
@@ -59,6 +64,8 @@ import com.finley.android.merge2048.ui.NewGameButton
 import com.finley.android.merge2048.ui.ScoreBlock
 import com.finley.android.merge2048.ui.StatPill
 import com.finley.android.merge2048.ui.TileProgressBar
+import com.finley.android.merge2048.ui.TimedChallengeButton
+import com.finley.android.merge2048.ui.TimedModeBanner
 import com.finley.android.merge2048.ui.UndoButton
 import org.jetbrains.compose.resources.stringResource
 
@@ -71,7 +78,8 @@ fun GameScreen(
     viewModel: GameViewModel = rememberGameViewModel(),
     onOpenSettings: () -> Unit = {},
     onOpenHistory: () -> Unit = {},
-    onDismissAchievement: (String) -> Unit = {}
+    onDismissAchievement: (String) -> Unit = {},
+    dailyChallengeSeed: Int = 0
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -80,7 +88,8 @@ fun GameScreen(
         onIntent = viewModel::onIntent,
         onOpenSettings = onOpenSettings,
         onOpenHistory = onOpenHistory,
-        onDismissAchievement = onDismissAchievement
+        onDismissAchievement = onDismissAchievement,
+        dailyChallengeSeed = dailyChallengeSeed
     )
 }
 
@@ -90,7 +99,8 @@ internal fun GameContent(
     onIntent: (GameIntent) -> Unit,
     onOpenSettings: () -> Unit = {},
     onOpenHistory: () -> Unit = {},
-    onDismissAchievement: (String) -> Unit = {}
+    onDismissAchievement: (String) -> Unit = {},
+    dailyChallengeSeed: Int = 0
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -98,6 +108,7 @@ internal fun GameContent(
             .background(GameColors.AppBackground),
         contentAlignment = Alignment.TopCenter
     ) {
+        val shareService = createShareService()
         // Adapt to available space so the board never overflows, especially on
         // short/landscape screens.
         val compact = maxHeight < 640.dp
@@ -150,6 +161,10 @@ internal fun GameContent(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    BoardSizeSelector(
+                        currentSize = state.boardSize,
+                        onSelect = { size -> onIntent(GameIntent.ChangeBoardSize(size)) }
+                    )
                     ChartIcon(onClick = onOpenHistory)
                     SettingsIcon(onClick = onOpenSettings)
                     UndoButton(
@@ -160,10 +175,24 @@ internal fun GameContent(
                     NewGameButton(
                         onClick = { onIntent(GameIntent.NewGame) }
                     )
+                    DailyChallengeButton(
+                        onClick = { onIntent(GameIntent.StartDailyChallenge(seed = dailyChallengeSeed)) }
+                    )
+                    TimedChallengeButton(
+                        onClick = { onIntent(GameIntent.StartTimedChallenge(durationSeconds = 60)) }
+                    )
                 }
             }
 
             Spacer(modifier = Modifier.height(boardTopGap))
+
+            if (state.isTimedMode) {
+                TimedModeBanner(
+                    remainingSeconds = state.timedRemainingSeconds,
+                    bestScore = state.timedBestScore
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             // ---------- Board + overlays (flexible, fits remaining space) ----------
             BoardAndOverlays(
@@ -186,7 +215,9 @@ internal fun GameContent(
                 boardSize = state.boardSize,
                 moveCount = state.moveCount,
                 totalMerges = state.totalMerges,
-                isNewBest = state.score >= state.bestScore && state.score > 0
+                isNewBest = state.score >= state.bestScore && state.score > 0,
+                shareService = shareService,
+                moveAnimationData = state.moveAnimationData
             )
 
             // ---------- Footer ----------
@@ -299,7 +330,9 @@ private fun BoardAndOverlays(
     boardSize: Int = 4,
     moveCount: Int = 0,
     totalMerges: Int = 0,
-    isNewBest: Boolean = false
+    isNewBest: Boolean = false,
+    shareService: ShareService? = null,
+    moveAnimationData: MoveAnimationData? = null
 ) {
     // Flexible region between header and footer. The game board is a square that
     // fits entirely within the remaining width/height, centered when there is slack,
@@ -318,7 +351,8 @@ private fun BoardAndOverlays(
                 board = board,
                 onSwipe = onSwipe,
                 onNewGame = onNewGame,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                moveAnimationData = moveAnimationData
             )
 
             // Merge position popups with combo indicator
@@ -367,7 +401,9 @@ private fun BoardAndOverlays(
                 totalMerges = totalMerges,
                 isNewBest = isNewBest,
                 onNewGame = onNewGame,
-                onDismiss = onNewGame
+                onDismiss = onNewGame,
+                shareService = shareService,
+                boardSize = boardSize
             )
         }
     }

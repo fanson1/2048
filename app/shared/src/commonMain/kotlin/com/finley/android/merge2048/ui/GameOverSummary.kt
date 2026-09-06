@@ -16,6 +16,10 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,7 +52,11 @@ import merge2048.app.shared.generated.resources.game_over_new_record_title
 import merge2048.app.shared.generated.resources.game_over_play_again
 import merge2048.app.shared.generated.resources.game_over_score_label
 import merge2048.app.shared.generated.resources.game_over_title
+import merge2048.app.shared.generated.resources.share_button
+import merge2048.app.shared.generated.resources.share_copied
+import merge2048.app.shared.generated.resources.share_message_template
 import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.data.ShareService
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -67,8 +75,19 @@ fun GameOverSummary(
     totalMerges: Int,
     isNewBest: Boolean,
     onNewGame: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    shareService: ShareService? = null,
+    boardSize: Int = 4
 ) {
+    var shareStatus by remember { mutableStateOf<String?>(null) }
+    val shareMessage = stringResource(Res.string.share_message_template, score, boardSize.toString())
+    val copiedText = stringResource(Res.string.share_copied)
+
+    fun sharePressed() {
+        val result = shareService?.share(shareMessage)
+        shareStatus = if (result != null) copiedText else null
+    }
+
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn(tween(300)) + scaleIn(initialScale = 0.9f, animationSpec = tween(300)),
@@ -202,6 +221,32 @@ fun GameOverSummary(
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
+
+                if (shareService != null) {
+                    Button(
+                        onClick = { sharePressed() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF3D4DB8)
+                        ),
+                        shape = RoundedCornerShape(14.dp),
+                        contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 2.dp
+                        )
+                    ) {
+                        Text(
+                            text = if (shareStatus != null) stringResource(Res.string.share_copied)
+                            else stringResource(Res.string.share_button),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 0.5.sp,
+                            color = Color.White
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
                 TextButton(onClick = onDismiss) {
                     Text(
                         text = stringResource(Res.string.game_over_close),

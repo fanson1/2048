@@ -1,30 +1,20 @@
 package com.finley.android.merge2048
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +22,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -47,15 +38,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.finley.android.merge2048.domain.Direction
+import com.finley.android.merge2048.domain.MoveAnimationData
+import com.finley.android.merge2048.domain.TileMovement
 import merge2048.app.shared.generated.resources.Res
 import merge2048.app.shared.generated.resources.board_swipe_to_play
 import merge2048.app.shared.generated.resources.tile_content_desc_empty
 import merge2048.app.shared.generated.resources.tile_content_desc_value
-import com.finley.android.merge2048.domain.Direction
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.abs
 
 private const val SWIPE_THRESHOLD_DP = 20f
+private const val TILE_ANIM_DURATION_MS = 120
+private const val SPAWN_ANIM_DURATION_MS = 200
+private const val MERGE_POP_DURATION_MS = 200
 
 private fun resolveSwipe(dx: Float, dy: Float): Direction? {
     return when {
@@ -72,7 +68,8 @@ fun SwipeableGameBoard(
     board: List<List<Int>>,
     onSwipe: (Direction) -> Unit,
     modifier: Modifier = Modifier,
-    onNewGame: (() -> Unit)? = null
+    onNewGame: (() -> Unit)? = null,
+    moveAnimationData: MoveAnimationData? = null
 ) {
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -131,9 +128,7 @@ fun SwipeableGameBoard(
                     onDragCancel = { },
                     onDrag = { change, _ ->
                         change.consume()
-
                         if (swiped) return@detectDragGestures
-
                         val dx = change.position.x - startPosition.x
                         val dy = change.position.y - startPosition.y
                         val direction = resolveSwipe(dx, dy)
@@ -146,139 +141,245 @@ fun SwipeableGameBoard(
             }
             .padding(10.dp)
     ) {
-        AnimatedContent(
-            targetState = board,
-            transitionSpec = {
-                val enter = directionSlideIn(lastDirection) + fadeIn()
-                val exit = fadeOut(tween(120))
-                (enter togetherWith exit).using(
-                    SizeTransform(clip = false)
-                )
-            },
-            label = "board-slide"
-        ) { targetBoard ->
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                for ((rowIdx, row) in targetBoard.withIndex()) {
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        for ((cellIdx, cell) in row.withIndex()) {
-                            key("tile-$rowIdx-$cellIdx-$cell") {
-                                GameTile(
-                                    value = cell,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .shadow(2.dp, RoundedCornerShape(8.dp), spotColor = Color(0x33000000))
-                                )
-                            }
+        val boardSize = board.size
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            for (rowIdx in 0 until boardSize) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    for (colIdx in 0 until boardSize) {
+                        key("cell-$rowIdx-$colIdx") {
+                            AnimatedTile(
+                                value = board[rowIdx][colIdx],
+                                row = rowIdx,
+                                col = colIdx,
+                                boardSize = boardSize,
+                                moveAnimationData = moveAnimationData,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .shadow(2.dp, RoundedCornerShape(8.dp), spotColor = Color(0x33000000))
+                            )
                         }
                     }
                 }
+            }
+        }
 
-                // Gesture guide: pulsing "Swipe to play" that fades after first move
-                if (!hasSwiped) {
-                    val infiniteTransition = rememberInfiniteTransition(label = "guide")
-                    val alpha by infiniteTransition.animateFloat(
-                        initialValue = 0.4f,
-                        targetValue = 1f,
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(1000, easing = LinearEasing),
-                            repeatMode = RepeatMode.Reverse
-                        ),
-                        label = "guide-pulse"
-                    )
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = stringResource(Res.string.board_swipe_to_play),
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = GameColors.HeaderText.copy(alpha = alpha * 0.6f),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                }
+        if (!hasSwiped) {
+            val infiniteTransition = rememberInfiniteTransition(label = "guide")
+            val alpha by infiniteTransition.animateFloat(
+                initialValue = 0.4f,
+                targetValue = 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "guide-pulse"
+            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(Res.string.board_swipe_to_play),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GameColors.HeaderText.copy(alpha = alpha * 0.6f),
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
 }
 
-private fun directionSlideIn(direction: Direction?): EnterTransition {
-    return when (direction) {
-        Direction.LEFT -> slideInHorizontally(initialOffsetX = { -it / 8 }, animationSpec = tween(180))
-        Direction.RIGHT -> slideInHorizontally(initialOffsetX = { it / 8 }, animationSpec = tween(180))
-        Direction.UP -> slideInVertically(initialOffsetY = { -it / 8 }, animationSpec = tween(180))
-        Direction.DOWN -> slideInVertically(initialOffsetY = { it / 8 }, animationSpec = tween(180))
-        null -> fadeIn(tween(120))
-    }
-}
-
+/**
+ * A single tile that animates from its previous position to its current position.
+ *
+ * KEY FIX: [key(movement) { ... }] wraps the entire animation block.
+ * When movement changes, Compose discards the old subtree (including old Animatables)
+ * and creates NEW ones with correct initial values. This eliminates the 1-frame ghost
+ * that occurred because LaunchedEffect runs asynchronously — the old Animatable value
+ * was rendered before the effect could reset it.
+ */
 @Composable
-fun GameTile(
+private fun AnimatedTile(
     value: Int,
+    row: Int,
+    col: Int,
+    boardSize: Int,
+    moveAnimationData: MoveAnimationData?,
     modifier: Modifier = Modifier
 ) {
-    val isHigh = value >= 256
-    val glowColor = when {
-        value >= 2048 -> GameColors.Tile2048
-        value >= 1024 -> Color(0xFFEDC53F)
-        value >= 512 -> Color(0xFFEDC850)
-        value >= 256 -> Color(0xFFEDCC61)
-        else -> Color(0x00000000)
+    val movement = remember(moveAnimationData, row, col) {
+        moveAnimationData?.movements?.find { m ->
+            when (m) {
+                is TileMovement.Stayed -> m.row == row && m.col == col
+                is TileMovement.Slid -> m.toRow == row && m.toCol == col
+                is TileMovement.Merged -> m.toRow == row && m.toCol == col
+                is TileMovement.Spawned -> m.row == row && m.col == col
+            }
+        }
     }
 
-    val baseModifier = if (isHigh) {
-        modifier
-            .shadow(10.dp, RoundedCornerShape(8.dp), spotColor = glowColor.copy(alpha = 0.55f))
-            .fillMaxSize()
-    } else {
-        modifier.fillMaxSize()
-    }
-
-    val tileDesc = if (value == 0) stringResource(Res.string.tile_content_desc_empty)
-        else stringResource(Res.string.tile_content_desc_value, value)
-
-    Box(
-        modifier = baseModifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value))
-            .semantics {
-                contentDescription = tileDesc
-            },
-        contentAlignment = Alignment.Center
-    ) {
-        AnimatedContent(
-            targetState = value,
-            transitionSpec = {
-                if (targetState != 0 && initialState == 0) {
-                    // New tile spawns with a pop
-                    (scaleIn(initialScale = 0f, animationSpec = spring(dampingRatio = 0.6f)) togetherWith
-                        scaleOut(targetScale = 0.6f, animationSpec = spring(dampingRatio = 0.6f)))
-                } else if (targetState > initialState && initialState != 0) {
-                    // Merge pop
-                    (scaleIn(initialScale = 0.6f, animationSpec = spring(dampingRatio = 0.45f)) togetherWith
-                        scaleOut(targetScale = 0.8f, animationSpec = spring(dampingRatio = 0.6f)))
-                } else {
-                    scaleIn(tween(150, easing = LinearEasing)) togetherWith
-                        scaleOut(tween(150, easing = LinearEasing))
+    // key(movement) forces full recomposition of this subtree when movement changes.
+    // Animatable initial values are computed from the movement — no stale frame.
+    key(movement) {
+        val offsetX = remember {
+            Animatable(
+                when (movement) {
+                    is TileMovement.Slid -> (movement.fromCol - col).toFloat()
+                    is TileMovement.Merged -> (movement.from1Col - col).toFloat()
+                    else -> 0f
                 }
-            },
-            label = "tile"
-        ) { target ->
-            if (target != 0) {
+            )
+        }
+        val offsetY = remember {
+            Animatable(
+                when (movement) {
+                    is TileMovement.Slid -> (movement.fromRow - row).toFloat()
+                    is TileMovement.Merged -> (movement.from1Row - row).toFloat()
+                    else -> 0f
+                }
+            )
+        }
+        val mergeOffsetX = remember {
+            Animatable(
+                if (movement is TileMovement.Merged) (movement.from2Col - col).toFloat() else 0f
+            )
+        }
+        val mergeOffsetY = remember {
+            Animatable(
+                if (movement is TileMovement.Merged) (movement.from2Row - row).toFloat() else 0f
+            )
+        }
+        val mergeSecondAlpha = remember {
+            Animatable(if (movement is TileMovement.Merged) 1f else 0f)
+        }
+        val scale = remember {
+            Animatable(
+                when (movement) {
+                    is TileMovement.Spawned -> 0f
+                    is TileMovement.Merged -> 0.8f
+                    else -> 1f
+                }
+            )
+        }
+
+        LaunchedEffect(boardSize) {
+            when (movement) {
+                is TileMovement.Slid -> {
+                    offsetX.animateTo(0f, tween(TILE_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
+                }
+                is TileMovement.Merged -> {
+                    offsetX.animateTo(0f, tween(TILE_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
+                    mergeOffsetX.animateTo(0f, tween(TILE_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
+                    mergeSecondAlpha.animateTo(0f, tween(80, easing = LinearEasing))
+                    scale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 500f))
+                }
+                is TileMovement.Spawned -> {
+                    scale.animateTo(1f, tween(SPAWN_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
+                }
+                is TileMovement.Stayed, null -> { }
+            }
+        }
+
+        // --- Visual properties ---
+        val tileDescEmpty = stringResource(Res.string.tile_content_desc_empty)
+        val tileDescValue = stringResource(Res.string.tile_content_desc_value, 0)
+        val isHigh = value >= 256
+        val isMilestone = value >= 2048
+        val glowColor = when {
+            value >= 2048 -> GameColors.Tile2048
+            value >= 1024 -> Color(0xFFEDC53F)
+            value >= 512 -> Color(0xFFEDC850)
+            value >= 256 -> Color(0xFFEDCC61)
+            else -> Color(0x00000000)
+        }
+
+        val infiniteTransition = rememberInfiniteTransition(label = "tile-glow")
+        val glowAlpha by infiniteTransition.animateFloat(
+            initialValue = if (isMilestone) 0.3f else 0.1f,
+            targetValue = if (isMilestone) 0.7f else 0.3f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(if (isMilestone) 800 else 1500, easing = LinearEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "glow-pulse"
+        )
+        val scalePulse by infiniteTransition.animateFloat(
+            initialValue = 1f,
+            targetValue = if (isMilestone) 1.02f else 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(1200, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "scale-pulse"
+        )
+
+        val glowModifier = if (isHigh) {
+            modifier
+                .shadow(if (isMilestone) 16.dp else 10.dp, RoundedCornerShape(8.dp), spotColor = glowColor.copy(alpha = glowAlpha))
+                .fillMaxSize()
+        } else {
+            modifier.fillMaxSize()
+        }
+
+        // --- Main tile ---
+        Box(
+            modifier = glowModifier
+                .graphicsLayer {
+                    translationX = offsetX.value * size.width
+                    translationY = offsetY.value * size.height
+                    scaleX = scale.value * scalePulse
+                    scaleY = scale.value * scalePulse
+                }
+                .clip(RoundedCornerShape(8.dp))
+                .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value))
+                .semantics {
+                    contentDescription = if (value == 0) tileDescEmpty
+                    else tileDescValue.replace("%1\$d", value.toString())
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (value != 0) {
                 Text(
-                    text = target.toString(),
-                    fontSize = tileFontSize(target).sp,
+                    text = value.toString(),
+                    fontSize = tileFontSize(value).sp,
                     fontWeight = FontWeight.Bold,
-                    color = tileTextColor(target),
+                    color = tileTextColor(value),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1
+                )
+            }
+        }
+
+        // --- Ghost tile for merge animation ---
+        if (movement is TileMovement.Merged && mergeSecondAlpha.value > 0f) {
+            val halfValue = movement.value / 2
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        translationX = mergeOffsetX.value * size.width
+                        translationY = mergeOffsetY.value * size.height
+                        alpha = mergeSecondAlpha.value
+                    }
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(tileBackgroundColor(halfValue)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = halfValue.toString(),
+                    fontSize = tileFontSize(halfValue).sp,
+                    fontWeight = FontWeight.Bold,
+                    color = tileTextColor(halfValue),
                     textAlign = TextAlign.Center,
                     maxLines = 1
                 )

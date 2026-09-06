@@ -267,4 +267,12 @@
     <string name="theme_dark_unlock">Play 5 games</string>
     <string name="theme_neon_name">Neon</string>
     <string name="theme_neon_unlock">Reach 1024 tile</string>
+
+    <!-- ===== Share score ===== -->
+    <string name="share_button">Share</string>
+    <string name="share_title">Share your score</string>
+    <string name="share_subtitle">Challenge your friends!</string>
+    <string name="share_message_template">I scored {score} points on {games} 2048 board — can you beat me?</string>
+    <string name="share_copied">Copied to clipboard!</string>
+    <string name="share_copy_hint">(Press Ctrl+V to paste)</string>
 </resources>

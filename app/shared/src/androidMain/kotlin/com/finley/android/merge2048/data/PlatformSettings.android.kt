@@ -12,6 +12,10 @@ internal actual fun initPlatformStorage(context: Any) {
     appContext = (context as Context).applicationContext
 }
 
+/** Returns the stored application context, or null if not yet initialised. */
+internal fun getAppContext(): Context? =
+    if (::appContext.isInitialized) appContext else null
+
 actual fun createSettings(): Settings {
     check(::appContext.isInitialized) {
         "Android context not initialised. Call initPlatformStorage() in your App composable."

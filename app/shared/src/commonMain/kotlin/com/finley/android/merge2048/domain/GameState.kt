@@ -26,5 +26,12 @@ data class GameState(
     val comboMultiplier: Float = 1f,
     /** Merge positions from the last move: Triple(row, col, mergedValue). */
     val lastMergePositions: List<Triple<Int, Int, Int>> = emptyList(),
-    val totalMerges: Int = 0
+    val totalMerges: Int = 0,
+    /** Animation data for tile sliding. Computed by GameEngine after each move. */
+    val moveAnimationData: MoveAnimationData? = null,
+    /** Timed challenge mode. */
+    val isTimedMode: Boolean = false,
+    val timedRemainingSeconds: Int = 0,
+    val timedDurationSeconds: Int = 0,
+    val timedBestScore: Int = 0
 )
