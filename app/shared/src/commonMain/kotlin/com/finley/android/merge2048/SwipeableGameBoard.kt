@@ -202,11 +202,13 @@ fun SwipeableGameBoard(
 /**
  * A single tile that animates from its previous position to its current position.
  *
- * KEY FIX: [key(movement) { ... }] wraps the entire animation block.
- * When movement changes, Compose discards the old subtree (including old Animatables)
- * and creates NEW ones with correct initial values. This eliminates the 1-frame ghost
- * that occurred because LaunchedEffect runs asynchronously — the old Animatable value
- * was rendered before the effect could reset it.
+ * KEY FIX: [key(moveId, movement) { ... }] wraps the entire animation block.
+ * When the move changes, Compose discards the old subtree (including old Animatables)
+ * and creates NEW ones with correct initial values. The moveId is unique per move, so
+ * even two structurally identical moves (same merge into the same cell) restart the
+ * animation. This eliminates the ghost that occurred because LaunchedEffect runs
+ * asynchronously — the old Animatable value was rendered (or stale-reset) before the
+ * effect could start.
  */
 @Composable
 private fun AnimatedTile(
@@ -228,9 +230,13 @@ private fun AnimatedTile(
         }
     }
 
-    // key(movement) forces full recomposition of this subtree when movement changes.
-    // Animatable initial values are computed from the movement — no stale frame.
-    key(movement) {
+    // key(moveId, movement) forces full recomposition of this subtree whenever the
+    // move changes. The moveId is monotonic, so even two structurally identical moves
+    // (same merge into the same cell) count as different keys — otherwise Compose would
+    // reuse the old settled Animatables and the tile would pop in place instead of
+    // animating. Animatable initial values are computed from the movement synchronously,
+    // so there is never a stale frame.
+    key(moveAnimationData?.moveId ?: -1L, movement) {
         val offsetX = remember {
             Animatable(
                 when (movement) {

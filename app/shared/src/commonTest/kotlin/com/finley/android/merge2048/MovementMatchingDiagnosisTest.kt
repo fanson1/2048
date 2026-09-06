@@ -117,9 +117,8 @@ class MovementMatchingDiagnosisTest {
                     if (after[m.row][m.col] != m.value) {
                         fail("Spawned value mismatch at (${m.row},${m.col}): expect ${m.value}, board has ${after[m.row][m.col]} (dir=$direction before=$before after=$after)")
                     }
-                    if (boardValueAt(before, m.row, m.col) != 0) {
-                        fail("Spawned at non-empty before cell: ${m} (dir=$direction before=$before)")
-                    }
+                    // A spawned tile may land on a cell that a before-tile vacated,
+                    // so we cannot require boardBefore == 0 here.
                 }
             }
         }

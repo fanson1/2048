@@ -28,6 +28,9 @@ sealed class TileMovement {
  * Pre-computed movement data for the entire board, ready for the UI to animate.
  */
 data class MoveAnimationData(
+    /** Monotonic id that uniquely identifies this move's animation, so Compose keys
+     *  never treat two different moves (even structurally identical ones) as the same. */
+    val moveId: Long,
     val movements: List<TileMovement>,
     val boardBefore: List<List<Int>>,
     val boardAfter: List<List<Int>>

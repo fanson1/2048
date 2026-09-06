@@ -53,6 +53,9 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
     var lastMoveAnimationData: MoveAnimationData? = null
         private set
 
+    /** Monotonic counter that uniquely identifies each successful move's animation. */
+    private var moveAnimationSeq: Long = 0
+
     /** Whether the player has used Undo at any point in the current game. */
     var hasUsedUndo: Boolean = false
         private set
@@ -115,6 +118,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         lastMergePositions = emptyList()
         lastMoveBoardBefore = emptyList()
         lastMoveAnimationData = null
+        moveAnimationSeq = 0
         hasUsedUndo = false
         isGameOver = false
         hasWon = false
@@ -221,7 +225,8 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
             addRandomTile()
 
             // Compute tile movement data for animation (after random tile added)
-            lastMoveAnimationData = computeMovements(lastMoveBoardBefore, getBoard(), direction)
+            moveAnimationSeq++
+            lastMoveAnimationData = computeMovements(lastMoveBoardBefore, getBoard(), direction, moveAnimationSeq)
         } else {
             lastMoveScore = 0
             lastMoveAnimationData = null
@@ -365,6 +370,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         lastMergePositions = emptyList()
         lastMoveBoardBefore = emptyList()
         lastMoveAnimationData = null
+        moveAnimationSeq = 0
         hasUsedUndo = false
         isGameOver = false
         hasWon = false
@@ -390,7 +396,8 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
     private fun computeMovements(
         boardBefore: List<List<Int>>,
         boardAfter: List<List<Int>>,
-        direction: Direction
+        direction: Direction,
+        moveId: Long
     ): MoveAnimationData {
         val size = boardSize
         val movements = mutableListOf<TileMovement>()
@@ -496,6 +503,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         }
 
         return MoveAnimationData(
+            moveId = moveId,
             movements = movements,
             boardBefore = boardBefore,
             boardAfter = boardAfter
