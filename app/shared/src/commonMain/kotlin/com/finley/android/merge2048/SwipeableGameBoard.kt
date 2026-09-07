@@ -34,6 +34,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -271,7 +273,7 @@ private fun AnimatedTile(
         val scale = remember {
             Animatable(
                 when (movement) {
-                    is TileMovement.Spawned -> 0f
+                    is TileMovement.Spawned -> 0.3f
                     is TileMovement.Merged -> 0.8f
                     else -> 1f
                 }
@@ -371,7 +373,14 @@ private fun AnimatedTile(
                         fontWeight = FontWeight.Bold,
                         color = tileTextColor(value),
                         textAlign = TextAlign.Center,
-                        maxLines = 1
+                        maxLines = 1,
+                        style = TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.15f),
+                                offset = Offset(0f, 1f),
+                                blurRadius = 2f
+                            )
+                        )
                     )
                 }
             }
@@ -398,7 +407,14 @@ private fun AnimatedTile(
                         fontWeight = FontWeight.Bold,
                         color = tileTextColor(halfValue),
                         textAlign = TextAlign.Center,
-                        maxLines = 1
+                        maxLines = 1,
+                        style = TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black.copy(alpha = 0.15f),
+                                offset = Offset(0f, 1f),
+                                blurRadius = 2f
+                            )
+                        )
                     )
                 }
             }

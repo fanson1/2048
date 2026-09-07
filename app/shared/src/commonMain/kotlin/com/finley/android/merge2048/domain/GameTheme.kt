@@ -73,7 +73,7 @@ sealed class GameTheme(
         override fun tileBackgroundColor(value: Int) = when {
             value == 0 -> tileEmpty
             value <= 4 -> Color(0xFFEEE4DA)
-            value <= 8 -> Color(0xFFEDE0C8)
+            value < 8 -> Color(0xFFEDE0C8)
             value <= 16 -> Color(0xFFF2B179)
             value <= 32 -> Color(0xFFF59563)
             value <= 64 -> Color(0xFFF67C5F)

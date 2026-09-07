@@ -339,7 +339,7 @@ private fun BoardAndOverlays(
     // so it never overflows on small, tall, or landscape screens.
     BoxWithConstraints(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopCenter
     ) {
         val boardDim = minOf(maxWidth, maxHeight)
         val boardModifier = Modifier
