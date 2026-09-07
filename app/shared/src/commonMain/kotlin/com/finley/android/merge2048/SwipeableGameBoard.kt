@@ -273,10 +273,14 @@ private fun AnimatedTile(
         val scale = remember {
             Animatable(
                 when (movement) {
-                    is TileMovement.Spawned -> 0.3f
                     is TileMovement.Merged -> 0.8f
                     else -> 1f
                 }
+            )
+        }
+        val spawnAlpha = remember {
+            Animatable(
+                if (movement is TileMovement.Spawned) 0f else 1f
             )
         }
 
@@ -292,7 +296,7 @@ private fun AnimatedTile(
                     scale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 500f))
                 }
                 is TileMovement.Spawned -> {
-                    scale.animateTo(1f, tween(SPAWN_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
+                    spawnAlpha.animateTo(1f, tween(SPAWN_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
                 }
                 is TileMovement.Stayed, null -> { }
             }
@@ -362,6 +366,7 @@ private fun AnimatedTile(
                         translationY = offsetY.value * size.height
                         scaleX = scale.value * scalePulse
                         scaleY = scale.value * scalePulse
+                        alpha = spawnAlpha.value
                     }
                     .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
