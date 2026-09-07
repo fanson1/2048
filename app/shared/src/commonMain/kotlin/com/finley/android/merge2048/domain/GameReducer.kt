@@ -136,13 +136,14 @@ class GameReducer(
             prefs = prefs.copy(unlockedAchievementIds = prefs.unlockedAchievementIds + newly.map { it.id })
         }
 
+        val comboBonus = computeComboBonus()
         prefs = prefs.copy(
-            bestScore = maxOf(prefs.bestScore, engine.score),
+            bestScore = maxOf(prefs.bestScore, engine.score + comboBonus),
             bestMaxTile = maxOf(prefs.bestMaxTile, engine.maxTile),
             totalMerges = prefs.totalMerges + engine.lastMoveMergeCount,
             totalScore = prefs.totalScore + engine.lastMoveScore,
             bestScoreByBoardSize = prefs.bestScoreByBoardSize.toMutableMap().apply {
-                this[engine.boardSize] = maxOf(this[engine.boardSize] ?: 0, engine.score)
+                this[engine.boardSize] = maxOf(this[engine.boardSize] ?: 0, engine.score + comboBonus)
             },
             bestMaxTileByBoardSize = prefs.bestMaxTileByBoardSize.toMutableMap().apply {
                 this[engine.boardSize] = maxOf(this[engine.boardSize] ?: 0, engine.maxTile)
@@ -218,13 +219,25 @@ class GameReducer(
         return previous.copy(pendingAchievementId = pendingAchievements.firstOrNull()?.id)
     }
 
+    /** Combo bonus for display: extra points from combo multiplier on top of raw merge score. */
+    private fun computeComboBonus(): Int {
+        val raw = engine.lastMoveScore
+        return if (engine.comboCount > 1 && raw > 0) {
+            (raw * (engine.comboMultiplier - 1f)).toInt()
+        } else 0
+    }
+
     private fun emitState(): GameState {
         val shouldShowWin = engine.hasWon && !winDialogShown
         if (shouldShowWin) winDialogShown = true
+
+        val comboBonus = computeComboBonus()
+        val displayedScore = engine.score + comboBonus
+
         return GameState(
             board = engine.getBoard(),
-            score = engine.score,
-            bestScore = prefs.bestScore,
+            score = displayedScore,
+            bestScore = maxOf(prefs.bestScore, displayedScore),
             bestScoreByBoardSize = prefs.bestScoreByBoardSize,
             isGameOver = engine.isGameOver,
             hasWon = engine.hasWon,

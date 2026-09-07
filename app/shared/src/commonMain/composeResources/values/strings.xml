@@ -36,7 +36,7 @@
     <string name="stat_label_best_score_value">Best score</string>
     <string name="stat_label_best_max_tile">Best max tile</string>
     <string name="stat_label_total_score">Total score</string>
-    <string name="stat_value_win_rate_format">%1$d%%</string>
+    <string name="stat_value_win_rate_format">%1$d%</string>
 
     <!-- ===== Win overlay ===== -->
     <string name="dialog_win_title">You win!</string>
@@ -64,7 +64,7 @@
     <string name="game_over_avg_merge_label">AVG MERGE</string>
     <string name="game_over_efficiency_label">EFFICIENCY</string>
     <string name="game_over_efficiency_zero">0%</string>
-    <string name="game_over_efficiency_format">%1$d%%</string>
+    <string name="game_over_efficiency_format">%1$d%</string>
     <string name="game_over_avg_merge_zero">0</string>
     <string name="game_over_play_again">PLAY AGAIN</string>
     <string name="game_over_close">CLOSE</string>
@@ -99,7 +99,7 @@
 
     <!-- ===== Tile progress bar ===== -->
     <string name="progress_next_tile_format">Next: %1$d</string>
-    <string name="progress_percentage_format">%1$d%%</string>
+    <string name="progress_percentage_format">%1$d%</string>
 
     <!-- ===== Tutorial overlay ===== -->
     <string name="tutorial_step_1_emoji">🎮</string>

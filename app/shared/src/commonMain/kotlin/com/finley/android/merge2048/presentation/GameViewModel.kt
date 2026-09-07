@@ -7,8 +7,10 @@ import com.finley.android.merge2048.data.GameRepository
 import com.finley.android.merge2048.data.SettingsRepository
 import com.finley.android.merge2048.data.SoundEvent
 import com.finley.android.merge2048.data.SoundService
+import com.finley.android.merge2048.GameColors
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameRecord
+import com.finley.android.merge2048.domain.GameTheme
 import com.finley.android.merge2048.domain.GameSnapshot
 import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.domain.UserPreferences
@@ -36,8 +38,8 @@ class GameViewModel(
     private val reducer = com.finley.android.merge2048.domain.GameReducer(
         onGameOver = { record -> historyRepository.append(record) }
     )
-    private val _state = MutableStateFlow(initialState())
-    val state: StateFlow<GameState> = _state.asStateFlow()
+    private val _state: MutableStateFlow<GameState> by lazy { MutableStateFlow(initialState()) }
+    val state: StateFlow<GameState> by lazy { _state.asStateFlow() }
 
     /** Public read-only view of the user's preferences. */
     val preferences: StateFlow<UserPreferences> = settingsRepository.flow
@@ -48,6 +50,16 @@ class GameViewModel(
         .stateIn(viewModelScope, SharingStarted.Eagerly, historyRepository.snapshot())
 
     init {
+        // Apply the user's theme immediately so GameColors is correct from the
+        // very first composition (before ProvideGameColors' SideEffect fires).
+        val themeId = settingsRepository.snapshot().themeId
+        val theme = when (themeId) {
+            "dark" -> GameTheme.Dark
+            "neon" -> GameTheme.Neon
+            else -> GameTheme.Classic
+        }
+        GameColors.apply(theme)
+
         // Persist any state changes back to the repositories.
         viewModelScope.launch {
             _state.collect { current ->

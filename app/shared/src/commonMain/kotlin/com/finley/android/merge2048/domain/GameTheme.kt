@@ -23,8 +23,12 @@ sealed class GameTheme(
 ) {
     /** All available themes. */
     companion object {
-        val all = listOf(Classic, Dark, Neon)
-        fun byId(id: String) = all.find { it.id == id } ?: Classic
+        val all get() = listOf(Classic, Dark, Neon)
+        fun byId(id: String) = when (id) {
+            "dark" -> Dark
+            "neon" -> Neon
+            else -> Classic
+        }
     }
 
     abstract val appBackground: Color

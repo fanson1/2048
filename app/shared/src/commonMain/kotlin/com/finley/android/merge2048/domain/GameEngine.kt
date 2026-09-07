@@ -200,17 +200,10 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
             if (history.size > MAX_HISTORY) history.removeFirst()
             moveCount++
 
-            val rawMergeScore = score - previousScore
-            lastMoveScore = if (lastMoveMergeCount > 0) {
-                // Apply combo multiplier
-                (rawMergeScore * comboMultiplier).toInt()
-            } else {
-                rawMergeScore
-            }
-            // Adjust total score if combo applied
-            if (lastMoveScore != rawMergeScore) {
-                score = previousScore + lastMoveScore
-            }
+            // Raw merge score = engine.score (already updated by merges) minus pre-move score.
+            // This is the authoritative base points; combo multiplier is applied by the
+            // reducer at display time only — never mutated here.
+            lastMoveScore = score - previousScore
 
             // Update combo: if merges happened, increment; otherwise reset
             if (lastMoveMergeCount > 0) {

@@ -115,7 +115,7 @@ internal fun GameContent(
         val titleFont = if (compact) 44.sp else 52.sp
         val hintVisible = maxHeight > 520.dp
         val footerVisible = maxHeight > 470.dp
-        val headerGap = if (compact) 12.dp else 20.dp
+        val headerGap = if (compact) 8.dp else 12.dp
         val boardTopGap = if (compact) 10.dp else 14.dp
 
         Column(

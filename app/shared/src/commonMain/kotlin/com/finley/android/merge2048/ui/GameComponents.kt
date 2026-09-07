@@ -246,7 +246,7 @@ fun DailyChallengeButton(
             containerColor = Color(0xFF8B5CF6) // Purple accent
         ),
         shape = RoundedCornerShape(10.dp),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 3.dp,
             pressedElevation = 1.dp
@@ -254,10 +254,12 @@ fun DailyChallengeButton(
     ) {
         Text(
             text = "Daily",
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
-            color = Color.White
+            color = Color.White,
+            maxLines = 1,
+            softWrap = false
         )
     }
 }
@@ -272,7 +274,7 @@ fun TimedChallengeButton(
             containerColor = Color(0xFFE63B2E) // Fiery red accent
         ),
         shape = RoundedCornerShape(10.dp),
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 6.dp),
         elevation = ButtonDefaults.buttonElevation(
             defaultElevation = 3.dp,
             pressedElevation = 1.dp
@@ -280,10 +282,12 @@ fun TimedChallengeButton(
     ) {
         Text(
             text = "Timer",
-            fontSize = 12.sp,
+            fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
-            color = Color.White
+            color = Color.White,
+            maxLines = 1,
+            softWrap = false
         )
     }
 }
