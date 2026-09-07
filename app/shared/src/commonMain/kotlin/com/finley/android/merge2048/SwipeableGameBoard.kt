@@ -278,13 +278,17 @@ private fun AnimatedTile(
                 }
             )
         }
-        val spawnAlpha = remember {
+        // Spawn animation: start at 0.7 scale, animate to 1.0.
+        // We use scale (not alpha) so the number is always visible.
+        // The scale animation is handled by re-using the `scale` Animatable with
+        // a different initial value for Spawned tiles.
+        val spawnScale = remember {
             Animatable(
-                if (movement is TileMovement.Spawned) 0f else 1f
+                if (movement is TileMovement.Spawned) 0.7f else 1f
             )
         }
 
-        LaunchedEffect(boardSize) {
+        LaunchedEffect(movement) {
             when (movement) {
                 is TileMovement.Slid -> {
                     offsetX.animateTo(0f, tween(TILE_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
@@ -296,7 +300,7 @@ private fun AnimatedTile(
                     scale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 500f))
                 }
                 is TileMovement.Spawned -> {
-                    spawnAlpha.animateTo(1f, tween(SPAWN_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
+                    spawnScale.animateTo(1f, tween(SPAWN_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
                 }
                 is TileMovement.Stayed, null -> { }
             }
@@ -364,9 +368,8 @@ private fun AnimatedTile(
                     .graphicsLayer {
                         translationX = offsetX.value * size.width
                         translationY = offsetY.value * size.height
-                        scaleX = scale.value * scalePulse
-                        scaleY = scale.value * scalePulse
-                        alpha = spawnAlpha.value
+                        scaleX = scale.value * spawnScale.value * scalePulse
+                        scaleY = scale.value * spawnScale.value * scalePulse
                     }
                     .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center

@@ -134,6 +134,11 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         initializeBoard()
     }
 
+    /** Clears the per-move animation data so tiles stop referencing a stale move. */
+    fun clearMoveAnimationData() {
+        lastMoveAnimationData = null
+    }
+
     fun undo(): Boolean {
         if (history.isEmpty()) return false
         val frame = history.removeLast()

@@ -27,4 +27,7 @@ sealed class GameIntent {
 
     /** Acknowledge and clear a fired achievement event. */
     data class ConsumeAchievement(val id: String) : GameIntent()
+
+    /** Internal: clear the stale per-move animation data after animations finish. */
+    data object ClearMoveAnimation : GameIntent()
 }

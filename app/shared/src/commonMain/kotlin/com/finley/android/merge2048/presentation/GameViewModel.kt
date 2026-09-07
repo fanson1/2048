@@ -104,6 +104,20 @@ class GameViewModel(
         val next = reducer.reduce(previous, intent)
         _state.value = next
         playSoundFor(previous, next, intent)
+
+        // After a move, schedule a clear of the per-move animation data so it doesn't
+        // persist in the state. This avoids the "tile background without number" bug
+        // where a stale Spawned movement keeps the tile in a partially-animated state.
+        if (intent is GameIntent.Move) {
+            viewModelScope.launch {
+                kotlinx.coroutines.delay(500)
+                if (_state.value.moveAnimationData != null) {
+                    _state.update { current ->
+                        reducer.reduce(current, GameIntent.ClearMoveAnimation)
+                    }
+                }
+            }
+        }
     }
 
     private fun playSoundFor(previous: GameState, next: GameState, intent: GameIntent) {
@@ -135,6 +149,7 @@ class GameViewModel(
             is GameIntent.ConsumeAchievement -> soundService.play(SoundEvent.Achievement)
             is GameIntent.DismissWinDialog -> { /* silent */ }
             is GameIntent.ContinueAfterWin -> { /* silent */ }
+            is GameIntent.ClearMoveAnimation -> { /* silent */ }
             else -> {}
         }
     }

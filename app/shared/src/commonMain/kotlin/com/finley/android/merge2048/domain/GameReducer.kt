@@ -39,6 +39,7 @@ class GameReducer(
             is GameIntent.RestoreGame -> handleRestore(intent)
             is GameIntent.ApplyPreferences -> handleApplyPrefs(previous, intent)
             is GameIntent.ConsumeAchievement -> handleConsumeAchievement(previous, intent.id)
+            is GameIntent.ClearMoveAnimation -> handleClearMoveAnimation(previous)
         }
     }
 
@@ -266,6 +267,15 @@ class GameReducer(
 
     internal fun seedBoardForTesting(values: List<List<Int>>) {
         engine.setBoardForTesting(values)
+    }
+
+    /**
+     * Clears the stale per-move animation data once the UI animations have had time
+     * to finish. Called by the ViewModel ~500ms after a move.
+     */
+    private fun handleClearMoveAnimation(previous: GameState): GameState {
+        engine.clearMoveAnimationData()
+        return previous.copy(moveAnimationData = null)
     }
 
     private fun emitGameOverRecord() {
