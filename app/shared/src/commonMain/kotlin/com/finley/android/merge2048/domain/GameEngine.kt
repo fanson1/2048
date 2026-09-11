@@ -490,6 +490,10 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
             }
         }
 
+        // Remove Stayed entries for positions that were claimed by Merged/Slid,
+        // so that the find() lookup in AnimatedTile returns the correct movement.
+        movements.removeAll { it is TileMovement.Stayed && claimed.contains(Pair(it.row, it.col)) }
+
         // --- Phase 2: Spawned tiles (tiles that came out of nowhere) ---
         for (r in 0 until size) {
             for (c in 0 until size) {

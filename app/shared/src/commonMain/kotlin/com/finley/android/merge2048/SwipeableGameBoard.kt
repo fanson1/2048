@@ -34,8 +34,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -273,22 +271,14 @@ private fun AnimatedTile(
         val scale = remember {
             Animatable(
                 when (movement) {
+                    is TileMovement.Spawned -> 0.3f
                     is TileMovement.Merged -> 0.8f
                     else -> 1f
                 }
             )
         }
-        // Spawn animation: start at 0.7 scale, animate to 1.0.
-        // We use scale (not alpha) so the number is always visible.
-        // The scale animation is handled by re-using the `scale` Animatable with
-        // a different initial value for Spawned tiles.
-        val spawnScale = remember {
-            Animatable(
-                if (movement is TileMovement.Spawned) 0.7f else 1f
-            )
-        }
 
-        LaunchedEffect(movement) {
+        LaunchedEffect(boardSize) {
             when (movement) {
                 is TileMovement.Slid -> {
                     offsetX.animateTo(0f, tween(TILE_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
@@ -300,7 +290,7 @@ private fun AnimatedTile(
                     scale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 500f))
                 }
                 is TileMovement.Spawned -> {
-                    spawnScale.animateTo(1f, tween(SPAWN_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
+                    scale.animateTo(1f, tween(SPAWN_ANIM_DURATION_MS, easing = FastOutSlowInEasing))
                 }
                 is TileMovement.Stayed, null -> { }
             }
@@ -368,8 +358,8 @@ private fun AnimatedTile(
                     .graphicsLayer {
                         translationX = offsetX.value * size.width
                         translationY = offsetY.value * size.height
-                        scaleX = scale.value * spawnScale.value * scalePulse
-                        scaleY = scale.value * spawnScale.value * scalePulse
+                        scaleX = scale.value * scalePulse
+                        scaleY = scale.value * scalePulse
                     }
                     .background(if (value == 0) GameColors.TileEmpty else tileBackgroundColor(value), RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
@@ -381,14 +371,7 @@ private fun AnimatedTile(
                         fontWeight = FontWeight.Bold,
                         color = tileTextColor(value),
                         textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        style = TextStyle(
-                            shadow = Shadow(
-                                color = Color.Black.copy(alpha = 0.15f),
-                                offset = Offset(0f, 1f),
-                                blurRadius = 2f
-                            )
-                        )
+                        maxLines = 1
                     )
                 }
             }
@@ -415,14 +398,7 @@ private fun AnimatedTile(
                         fontWeight = FontWeight.Bold,
                         color = tileTextColor(halfValue),
                         textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        style = TextStyle(
-                            shadow = Shadow(
-                                color = Color.Black.copy(alpha = 0.15f),
-                                offset = Offset(0f, 1f),
-                                blurRadius = 2f
-                            )
-                        )
+                        maxLines = 1
                     )
                 }
             }
