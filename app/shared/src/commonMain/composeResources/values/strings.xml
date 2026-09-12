@@ -293,4 +293,10 @@
     <!-- ===== Challenge buttons ===== -->
     <string name="challenge_daily">Daily</string>
     <string name="challenge_timer">Timer</string>
+
+    <!-- ===== Mid-game restart confirmation ===== -->
+    <string name="dialog_confirm_title">Start Over?</string>
+    <string name="dialog_confirm_message">Your current game will be lost. Continue?</string>
+    <string name="dialog_action_cancel">Cancel</string>
+    <string name="dialog_action_confirm">Start Over</string>
 </resources>

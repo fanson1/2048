@@ -71,10 +71,20 @@ fun tileTextColor(value: Int): Color {
     return GameColors.currentTheme.tileTextColor(value)
 }
 
-fun tileFontSize(value: Int): Int = when {
-    value >= 1000 -> 20
-    value >= 100 -> 26
-    else -> 36
+/**
+ * Formats an integer score with thousands separators (e.g. 12480 -> "12,480").
+ * Grouping is done with ASCII commas so output is consistent across locales.
+ */
+fun formatScore(value: Int): String {
+    if (value in 0..999) return value.toString()
+    val digits = value.toString()
+    val sb = StringBuilder(digits.length + digits.length / 3 + 1)
+    val firstGroup = digits.length % 3
+    for (i in digits.indices) {
+        if (i > 0 && (i - firstGroup) % 3 == 0) sb.append(',')
+        sb.append(digits[i])
+    }
+    return sb.toString()
 }
 
 /**

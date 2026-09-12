@@ -52,6 +52,7 @@ import merge2048.app.shared.generated.resources.time_ago_weeks_format
 import com.finley.android.merge2048.GameColors
 import com.finley.android.merge2048.domain.GameRecord
 import com.finley.android.merge2048.domain.LifetimeStats
+import com.finley.android.merge2048.formatScore
 import org.jetbrains.compose.resources.stringResource
 
 /**
@@ -114,7 +115,7 @@ fun HistoryScreen(
             Row(modifier = Modifier.fillMaxWidth()) {
                 StatBlock(
                     label = stringResource(Res.string.stat_label_best_score),
-                    value = stats.bestScore.toString(),
+                    value = formatScore(stats.bestScore),
                     modifier = Modifier.weight(1f)
                 )
                 StatBlock(
@@ -128,7 +129,7 @@ fun HistoryScreen(
             Row(modifier = Modifier.fillMaxWidth()) {
                 StatBlock(
                     label = stringResource(Res.string.stat_label_avg_score),
-                    value = stats.averageScore.toString(),
+                    value = formatScore(stats.averageScore),
                     modifier = Modifier.weight(1f)
                 )
                 StatBlock(

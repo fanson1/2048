@@ -26,6 +26,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -66,6 +69,7 @@ import com.finley.android.merge2048.presentation.rememberGameViewModel
 import com.finley.android.merge2048.ui.ComboBadge
 import com.finley.android.merge2048.ui.BoardSizeSelector
 import com.finley.android.merge2048.ui.ConfettiCelebration
+import com.finley.android.merge2048.ui.ConfirmOverlay
 import com.finley.android.merge2048.ui.DailyChallengeButton
 import com.finley.android.merge2048.ui.GameOverSummary
 import com.finley.android.merge2048.ui.GameOverlay
@@ -129,6 +133,15 @@ internal fun GameContent(
         val headerGap = if (compact) 8.dp else 12.dp
         val boardTopGap = if (compact) 10.dp else 14.dp
 
+        // Guard against accidentally losing an in-progress game: destructive
+        // actions (new game, board-size change, challenge start) only run after
+        // the player confirms when there is progress on the line.
+        var pendingConfirm by remember { mutableStateOf<GameIntent?>(null) }
+        val hasProgress = state.score > 0 && state.moveCount > 0 && !state.isGameOver
+        fun confirmOrRun(intent: GameIntent) {
+            if (hasProgress) pendingConfirm = intent else onIntent(intent)
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -145,7 +158,8 @@ internal fun GameContent(
                 comboCount = state.comboCount,
                 comboMultiplier = state.comboMultiplier,
                 titleFont = titleFont,
-                compact = compact
+                compact = compact,
+                newBestThisSession = state.score > state.bestAtSessionStart && state.score > 0
             )
 
             Spacer(modifier = Modifier.height(headerGap))
@@ -174,7 +188,7 @@ internal fun GameContent(
                 ) {
                     BoardSizeSelector(
                         currentSize = state.boardSize,
-                        onSelect = { size -> onIntent(GameIntent.ChangeBoardSize(size)) }
+                        onSelect = { size -> confirmOrRun(GameIntent.ChangeBoardSize(size)) }
                     )
                     ChartIcon(onClick = onOpenHistory)
                     SettingsIcon(onClick = onOpenSettings)
@@ -184,17 +198,17 @@ internal fun GameContent(
                         onClick = { onIntent(GameIntent.Undo) }
                     )
                     NewGameButton(
-                        onClick = { onIntent(GameIntent.NewGame) }
+                        onClick = { confirmOrRun(GameIntent.NewGame) }
                     )
                     PauseButton(
                         paused = state.isPaused,
                         onClick = { onIntent(GameIntent.TogglePause) }
                     )
                     DailyChallengeButton(
-                        onClick = { onIntent(GameIntent.StartDailyChallenge(seed = dailyChallengeSeed)) }
+                        onClick = { confirmOrRun(GameIntent.StartDailyChallenge(seed = dailyChallengeSeed)) }
                     )
                     TimedChallengeButton(
-                        onClick = { onIntent(GameIntent.StartTimedChallenge(durationSeconds = 60)) }
+                        onClick = { confirmOrRun(GameIntent.StartTimedChallenge(durationSeconds = 60)) }
                     )
                 }
             }
@@ -257,6 +271,18 @@ internal fun GameContent(
                 }
             }
         }
+
+        // Confirmation overlay when a destructive action needs the player's OK.
+        if (pendingConfirm != null) {
+            ConfirmOverlay(
+                onConfirm = {
+                    val intent = pendingConfirm
+                    pendingConfirm = null
+                    if (intent != null) onIntent(intent)
+                },
+                onDismiss = { pendingConfirm = null }
+            )
+        }
     }
 }
 
@@ -269,7 +295,8 @@ private fun Header(
     comboCount: Int,
     comboMultiplier: Float,
     titleFont: TextUnit,
-    compact: Boolean
+    compact: Boolean,
+    newBestThisSession: Boolean = false
 ) {
     val emDash = stringResource(Res.string.placeholder_em_dash)
     Row(
@@ -322,7 +349,8 @@ private fun Header(
             ScoreBlock(
                 label = stringResource(Res.string.stat_label_best),
                 value = bestScore,
-                compact = compact
+                compact = compact,
+                highlight = newBestThisSession
             )
         }
     }

@@ -76,11 +76,17 @@ class GameViewModel(
             }
         }
 
-        // Timed challenge countdown ticker
+        // Timed challenge countdown ticker.
+        //
+        // Deliberately a single periodic loop that reads the CURRENT state, not a
+        // state-collector. A collector would launch one delayed coroutine per state
+        // emission, so rapid moves during a timed challenge could fire several ticks
+        // within one second and run the countdown several times too fast.
         viewModelScope.launch {
-            _state.collect { current ->
+            while (true) {
+                kotlinx.coroutines.delay(1000)
+                val current = _state.value
                 if (current.isTimedMode && current.timedRemainingSeconds > 0 && !current.isPaused) {
-                    kotlinx.coroutines.delay(1000)
                     onIntent(GameIntent.TimerTick)
                 }
             }

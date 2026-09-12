@@ -8,6 +8,7 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,7 +25,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +49,10 @@ import merge2048.app.shared.generated.resources.button_resume
 import merge2048.app.shared.generated.resources.challenge_daily
 import merge2048.app.shared.generated.resources.challenge_timer
 import merge2048.app.shared.generated.resources.combo_badge_text_format
+import merge2048.app.shared.generated.resources.dialog_action_cancel
+import merge2048.app.shared.generated.resources.dialog_action_confirm
+import merge2048.app.shared.generated.resources.dialog_confirm_message
+import merge2048.app.shared.generated.resources.dialog_confirm_title
 import merge2048.app.shared.generated.resources.icon_undo
 import merge2048.app.shared.generated.resources.new_game_button_desc
 import merge2048.app.shared.generated.resources.new_game_button_text
@@ -61,6 +68,7 @@ import merge2048.app.shared.generated.resources.undo_button_text
 import merge2048.app.shared.generated.resources.undo_button_text_with_count
 import org.jetbrains.compose.resources.stringResource
 import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.formatScore
 
 /**
  * Reusable presentational building blocks of the Merge2048 design system.
@@ -71,7 +79,8 @@ import com.finley.android.merge2048.GameColors
 fun ScoreBlock(
     label: String,
     value: Int,
-    compact: Boolean = false
+    compact: Boolean = false,
+    highlight: Boolean = false
 ) {
     val animatedValue = remember { Animatable(0f) }
     val displayedValue = animatedValue.value.toInt()
@@ -88,11 +97,30 @@ fun ScoreBlock(
         )
     }
 
+    // Brief celebration pulse when a new record is set: scales the block up and back
+    // down once (~900ms) instead of pulsing forever.
+    val pulse = remember { Animatable(1f) }
+    var wasHighlighted by remember { mutableStateOf(false) }
+    LaunchedEffect(highlight) {
+        if (highlight && !wasHighlighted) {
+            wasHighlighted = true
+            pulse.animateTo(1.15f, tween(150, easing = FastOutSlowInEasing))
+            pulse.animateTo(1f, spring(dampingRatio = 0.45f, stiffness = 600f))
+        } else if (!highlight) {
+            wasHighlighted = false
+        }
+    }
+    val scale = pulse.value
+
     Column(
         modifier = Modifier
             .shadow(2.dp, RoundedCornerShape(10.dp), spotColor = Color(0x33000000))
             .clip(RoundedCornerShape(10.dp))
             .background(GameColors.ScoreBlockBackground)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
             .semantics {
                 contentDescription = "${label} ${value}"
                 liveRegion = androidx.compose.ui.semantics.LiveRegionMode.Polite
@@ -111,7 +139,7 @@ fun ScoreBlock(
             color = GameColors.ScoreLabel
         )
         Text(
-            text = displayedValue.toString(),
+            text = formatScore(displayedValue),
             fontSize = if (compact) 18.sp else 22.sp,
             fontWeight = FontWeight.Black,
             color = Color.White
@@ -599,5 +627,78 @@ fun StatRow(label: String, value: String) {
             fontWeight = FontWeight.Bold,
             color = GameColors.HeaderText
         )
+    }
+}
+
+/**
+ * Centered confirmation overlay used before destructive actions (new game,
+ * board-size change, challenge start) when a game is in progress. Guards the
+ * player against accidentally losing progress by mis-tapping a control.
+ */
+@Composable
+fun ConfirmOverlay(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val title = stringResource(Res.string.dialog_confirm_title)
+    val message = stringResource(Res.string.dialog_confirm_message)
+    val cancel = stringResource(Res.string.dialog_action_cancel)
+    val confirm = stringResource(Res.string.dialog_action_confirm)
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(GameColors.OverlayScrim)
+            .clickable(onClick = onDismiss),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            modifier = Modifier
+                .shadow(12.dp, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+                .background(GameColors.Surface)
+                .clickable { /* swallow taps on the card */ }
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = title,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Black,
+                color = GameColors.HeaderText
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = message,
+                fontSize = 14.sp,
+                color = GameColors.SubText,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(18.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                TextButton(onClick = onDismiss) {
+                    Text(
+                        text = cancel,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = GameColors.SubText
+                    )
+                }
+                Button(
+                    onClick = onConfirm,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = GameColors.ButtonBackground
+                    ),
+                    shape = RoundedCornerShape(10.dp),
+                    contentPadding = PaddingValues(horizontal = 18.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = confirm,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = GameColors.ButtonLabel
+                    )
+                }
+            }
+        }
     }
 }

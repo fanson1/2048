@@ -57,6 +57,7 @@ import merge2048.app.shared.generated.resources.share_copied
 import merge2048.app.shared.generated.resources.share_message_template
 import com.finley.android.merge2048.GameColors
 import com.finley.android.merge2048.data.ShareService
+import com.finley.android.merge2048.formatScore
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -145,7 +146,7 @@ fun GameOverSummary(
                         color = GameColors.ScoreLabel
                     )
                     Text(
-                        text = score.toString(),
+                        text = formatScore(score),
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Black,
                         color = GameColors.HeaderText
@@ -161,7 +162,7 @@ fun GameOverSummary(
                 ) {
                     SummaryStat(
                         label = stringResource(Res.string.game_over_best_label),
-                        value = bestScore.toString()
+                        value = formatScore(bestScore)
                     )
                     SummaryStat(
                         label = stringResource(Res.string.game_over_max_label),
