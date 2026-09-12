@@ -29,7 +29,7 @@ import merge2048.app.shared.generated.resources.tutorial_step_2_title
 import merge2048.app.shared.generated.resources.tutorial_step_3_body
 import merge2048.app.shared.generated.resources.tutorial_step_3_emoji
 import merge2048.app.shared.generated.resources.tutorial_step_3_title
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 

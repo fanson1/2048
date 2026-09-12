@@ -1,0 +1,302 @@
+<resources>
+    <!-- App name -->
+    <string name="app_name">合并2048</string>
+
+    <!-- ===== Common icons / single characters ===== -->
+    <string name="icon_back_arrow">←</string>
+    <string name="icon_check_mark">✔</string>
+    <string name="icon_undo">↩</string>
+    <string name="icon_chart">📊</string>
+    <string name="icon_settings">⚙️</string>
+    <string name="placeholder_em_dash">—</string>
+
+    <!-- ===== Screen titles ===== -->
+    <string name="screen_stats_history_title">统计与历史</string>
+    <string name="screen_settings_title">设置</string>
+
+    <!-- ===== Game screen (main) ===== -->
+    <string name="game_title_2048">2048</string>
+    <string name="game_how_to_play_label">开始</string>
+    <string name="game_footer_controls_hint">滑动或使用方向键 / WASD • R 重新开始 • 撤销返回上一步</string>
+    <string name="game_footer_signature">为乐趣而制作 • Merge2048</string>
+
+    <!-- ===== Game stats labels ===== -->
+    <string name="stat_label_max">最大</string>
+    <string name="stat_label_moves">步数</string>
+    <string name="stat_label_score">分数</string>
+    <string name="stat_label_best">最高</string>
+    <string name="stat_label_games">局数</string>
+    <string name="stat_label_win_rate">胜率</string>
+    <string name="stat_label_best_score">最高分</string>
+    <string name="stat_label_best_max">最大方块</string>
+    <string name="stat_label_avg_score">平均分</string>
+    <string name="stat_label_best_move">最佳单步</string>
+    <string name="stat_label_max_tile">最大方块</string>
+    <string name="stat_label_games_played">已玩局数</string>
+    <string name="stat_label_best_score_value">最高分</string>
+    <string name="stat_label_best_max_tile">最大方块</string>
+    <string name="stat_label_total_score">总分</string>
+    <string name="stat_value_win_rate_format">%1$d%%</string>
+
+    <!-- ===== Win overlay ===== -->
+    <string name="dialog_win_title">你赢了！</string>
+    <string name="dialog_win_subtitle">你合出了2048方块！</string>
+    <string name="dialog_win_play_again">再来一局</string>
+    <string name="dialog_win_keep_going">继续挑战</string>
+    <string name="overlay_close_button">关闭</string>
+    <string name="overlay_score_label">分数</string>
+    <string name="overlay_best_label">最高</string>
+    <string name="overlay_max_label">最大</string>
+
+    <!-- ===== Game board ===== -->
+    <string name="board_swipe_to_play">滑动开始游戏</string>
+    <string name="tile_content_desc_empty">空</string>
+    <string name="tile_content_desc_value">方块 %1$d</string>
+
+    <!-- ===== Game over summary ===== -->
+    <string name="game_over_title">游戏结束</string>
+    <string name="game_over_new_record_title">新纪录！</string>
+    <string name="game_over_score_label">分数</string>
+    <string name="game_over_best_label">最高</string>
+    <string name="game_over_max_label">最大</string>
+    <string name="game_over_moves_label">步数</string>
+    <string name="game_over_merges_label">合并次数</string>
+    <string name="game_over_avg_merge_label">平均合并</string>
+    <string name="game_over_efficiency_label">效率</string>
+    <string name="game_over_efficiency_zero">0%</string>
+    <string name="game_over_efficiency_format">%1$d%%</string>
+    <string name="game_over_avg_merge_zero">0</string>
+    <string name="game_over_play_again">再来一局</string>
+    <string name="game_over_close">关闭</string>
+    <string name="game_over_msg_legendary">传奇表现！你是大师！</string>
+    <string name="game_over_msg_incredible">不可思议！2048方块可不是小成就！</string>
+    <string name="game_over_msg_great">精彩一局！你离2048越来越近了！</string>
+    <string name="game_over_msg_nice">不错！继续挑战更大的方块！</string>
+    <string name="game_over_msg_good_effort">不错的尝试！每一次合并都算数！</string>
+    <string name="game_over_msg_strong_score">高分！下次试着挑战更高的方块！</string>
+    <string name="game_over_msg_decent">还可以！专注于合出更大的方块吧。</string>
+    <string name="game_over_msg_default">每一局都能学到新东西。再试一次吧！</string>
+
+    <!-- ===== Undo button ===== -->
+    <string name="undo_button_text_with_count">↩ %1$d</string>
+    <string name="undo_button_text">↩</string>
+    <string name="undo_button_desc_with_count">撤销，剩余 %1$d 次</string>
+    <string name="undo_button_desc">撤销</string>
+
+    <!-- ===== New game button ===== -->
+    <string name="new_game_button_text">新局</string>
+    <string name="new_game_button_desc">新游戏</string>
+
+    <!-- ===== Score block (accessibility) ===== -->
+    <string name="score_block_content_desc_format">%1$s %2$d</string>
+
+    <!-- ===== Combo badge ===== -->
+    <string name="combo_badge_text_format">x%1$d</string>
+
+    <!-- ===== Merge popup ===== -->
+    <string name="merge_score_popup_format">+%1$d</string>
+    <string name="merge_combo_label_format">连击 x%1$d</string>
+
+    <!-- ===== Tile progress bar ===== -->
+    <string name="progress_next_tile_format">下一个: %1$d</string>
+    <string name="progress_percentage_format">%1$d%%</string>
+
+    <!-- ===== Tutorial overlay ===== -->
+    <string name="tutorial_step_1_emoji">🎮</string>
+    <string name="tutorial_step_1_title">欢迎来到合并2048</string>
+    <string name="tutorial_step_1_body">向上、下、左或右滑动来移动所有方块。当两个相同数字的方块接触时，它们会合并成一个！</string>
+    <string name="tutorial_step_2_emoji">🎯</string>
+    <string name="tutorial_step_2_title">目标是2048</string>
+    <string name="tutorial_step_2_body">你的目标是合出2048方块。不断合并来提高你的最高分并解锁成就。</string>
+    <string name="tutorial_step_3_emoji">💪</string>
+    <string name="tutorial_step_3_title">一切由你掌控</string>
+    <string name="tutorial_step_3_body">点击撤销返回上一步，新局重新开始，或点击 ⚙ 更改棋盘大小、动画和主题。</string>
+    <string name="tutorial_back_button">返回</string>
+    <string name="tutorial_next_button">下一步</string>
+    <string name="tutorial_got_it_button">知道了</string>
+
+    <!-- ===== Settings sections ===== -->
+    <string name="settings_section_board_size">棋盘大小</string>
+    <string name="settings_section_theme">主题</string>
+    <string name="settings_section_animation">动画</string>
+    <string name="settings_section_appearance">外观</string>
+    <string name="settings_section_sound">声音</string>
+    <string name="settings_section_stats">统计</string>
+    <string name="settings_section_achievements">成就</string>
+
+    <!-- ===== Settings items ===== -->
+    <string name="settings_theme_locked_format">未解锁: %1$s</string>
+    <string name="settings_animation_full">完整</string>
+    <string name="settings_animation_reduced">精简</string>
+    <string name="settings_animation_off">关闭</string>
+    <string name="settings_animation_full_desc">所有动画和特效</string>
+    <string name="settings_animation_reduced_desc">快速过渡，无长滑动</string>
+    <string name="settings_animation_off_desc">即时，无过渡动画</string>
+    <string name="settings_dark_mode_label">深色模式</string>
+    <string name="settings_sound_effects_label">音效</string>
+    <string name="settings_switch_on">开</string>
+    <string name="settings_switch_off">关</string>
+    <string name="settings_achievements_progress_format">已解锁 %1$d / %2$d</string>
+    <string name="settings_board_size_chip_format">%1$dx%1$d</string>
+    <string name="settings_board_size_classic">经典</string>
+    <string name="settings_board_size_fast">快速</string>
+    <string name="settings_board_size_large">大棋盘</string>
+    <string name="settings_board_size_massive">超大</string>
+
+    <!-- ===== History / Stats screen ===== -->
+    <string name="stats_card_lifetime">总计</string>
+    <string name="stats_card_last_game">上一局</string>
+    <string name="stats_card_by_board_size">按棋盘大小</string>
+    <string name="recent_games_section_title">最近游戏</string>
+    <string name="leaderboard_section_title">排行榜</string>
+    <string name="stats_empty_message">在这里查看你的统计数据，开始你的第一局吧。</string>
+    <string name="stats_board_size_format">%1$dx%1$d</string>
+    <string name="stats_per_size_summary_format">最高 %1$d • %2$d 局</string>
+    <string name="history_row_score_format">%1$d 分</string>
+    <string name="history_row_details_format">%1$d 步 • 最大 %2$d</string>
+    <string name="history_row_details_won_format">%1$d 步 • 最大 %2$d • 🏆</string>
+    <string name="time_ago_now">刚刚</string>
+    <string name="time_ago_minutes_format">%1$d分钟前</string>
+    <string name="time_ago_hours_format">%1$d小时前</string>
+    <string name="time_ago_days_format">%1$d天前</string>
+    <string name="time_ago_weeks_format">%1$d周前</string>
+
+    <!-- ===== Achievement toast ===== -->
+    <string name="achievement_unlocked_toast_format">%1$s 成就已解锁！</string>
+
+    <!-- ===== Achievement catalog (titles / descriptions / emojis) ===== -->
+    <string name="ach_first_merge_emoji">👋</string>
+    <string name="ach_first_merge_title">你好，世界</string>
+    <string name="ach_first_merge_desc">完成你的第一次合并。</string>
+
+    <string name="ach_first_8_emoji">🪜</string>
+    <string name="ach_first_8_title">踏上阶梯</string>
+    <string name="ach_first_8_desc">合出8方块。</string>
+
+    <string name="ach_first_32_emoji">🔟</string>
+    <string name="ach_first_32_title">两位数</string>
+    <string name="ach_first_32_desc">合出32方块。</string>
+
+    <string name="ach_first_128_emoji">1️⃣2️⃣8️⃣</string>
+    <string name="ach_first_128_title">三位数！</string>
+    <string name="ach_first_128_desc">合出128方块。</string>
+
+    <string name="ach_first_512_emoji">🔥</string>
+    <string name="ach_first_512_title">五一二</string>
+    <string name="ach_first_512_desc">合出512方块。</string>
+
+    <string name="ach_first_1024_emoji">💎</string>
+    <string name="ach_first_1024_title">一千零二十四</string>
+    <string name="ach_first_1024_desc">合出1024方块。</string>
+
+    <string name="ach_first_2048_emoji">🏆</string>
+    <string name="ach_first_2048_title">经典挑战</string>
+    <string name="ach_first_2048_desc">合出2048方块。</string>
+
+    <string name="ach_first_4096_emoji">🚀</string>
+    <string name="ach_first_4096_title">超越经典</string>
+    <string name="ach_first_4096_desc">合出4096方块。</string>
+
+    <string name="ach_first_8192_emoji">🌌</string>
+    <string name="ach_first_8192_title">双倍超越</string>
+    <string name="ach_first_8192_desc">合出8192方块。</string>
+
+    <string name="ach_chain_5_emoji">⚡</string>
+    <string name="ach_chain_5_title">连击入门</string>
+    <string name="ach_chain_5_desc">在一步中合并五次。</string>
+
+    <string name="ach_chain_8_emoji">🌪️</string>
+    <string name="ach_chain_8_title">连击大师</string>
+    <string name="ach_chain_8_desc">在一步中合并八次。</string>
+
+    <string name="ach_moves_100_emoji">💯</string>
+    <string name="ach_moves_100_title">初有经验</string>
+    <string name="ach_moves_100_desc">在一局中达到100步。</string>
+
+    <string name="ach_moves_500_emoji">🧘</string>
+    <string name="ach_moves_500_title">专注坚持</string>
+    <string name="ach_moves_500_desc">在一局中达到500步。</string>
+
+    <string name="ach_moves_1000_emoji">🏃</string>
+    <string name="ach_moves_1000_title">马拉松选手</string>
+    <string name="ach_moves_1000_desc">在一局中达到1000步。</string>
+
+    <string name="ach_score_10k_emoji">💵</string>
+    <string name="ach_score_10k_title">五位数</string>
+    <string name="ach_score_10k_desc">在一局中达到10,000分。</string>
+
+    <string name="ach_score_50k_emoji">💰</string>
+    <string name="ach_score_50k_title">五万分</string>
+    <string name="ach_score_50k_desc">在一局中达到50,000分。</string>
+
+    <string name="ach_score_100k_emoji">🤑</string>
+    <string name="ach_score_100k_title">六位数</string>
+    <string name="ach_score_100k_desc">在一局中达到100,000分。</string>
+
+    <string name="ach_games_10_emoji">🎮</string>
+    <string name="ach_games_10_title">热身完毕</string>
+    <string name="ach_games_10_desc">玩10局游戏。</string>
+
+    <string name="ach_games_100_emoji">💯</string>
+    <string name="ach_games_100_title">百局俱乐部</string>
+    <string name="ach_games_100_desc">玩100局游戏。</string>
+
+    <string name="ach_undo_abstain_emoji">🧱</string>
+    <string name="ach_undo_abstain_title">无悔决定</string>
+    <string name="ach_undo_abstain_desc">不使用撤销赢得一局。</string>
+
+    <string name="ach_fast_1024_emoji">⏱️</string>
+    <string name="ach_fast_1024_title">极速玩家</string>
+    <string name="ach_fast_1024_desc">在50步内达到1024。</string>
+
+    <string name="ach_small_board_emoji">🧩</string>
+    <string name="ach_small_board_title">紧凑专家</string>
+    <string name="ach_small_board_desc">在3x3棋盘上获胜。</string>
+
+    <string name="ach_big_board_emoji">🗺️</string>
+    <string name="ach_big_board_title">大棋盘之王</string>
+    <string name="ach_big_board_desc">在5x5棋盘上获胜。</string>
+
+    <string name="ach_max_board_emoji">🧭</string>
+    <string name="ach_max_board_title">马拉松棋盘</string>
+    <string name="ach_max_board_desc">在6x6棋盘上获胜。</string>
+
+    <!-- ===== Game themes ===== -->
+    <string name="theme_classic_name">经典</string>
+    <string name="theme_classic_unlock">始终可用</string>
+    <string name="theme_dark_name">午夜</string>
+    <string name="theme_dark_unlock">玩5局游戏</string>
+    <string name="theme_neon_name">霓虹</string>
+    <string name="theme_neon_unlock">达到1024方块</string>
+
+    <!-- ===== Share score ===== -->
+    <string name="share_button">分享</string>
+    <string name="share_title">分享你的分数</string>
+    <string name="share_subtitle">挑战你的朋友！</string>
+    <string name="share_message_template">我在 %2$dx%2$d 的2048棋盘上得了 %1$d 分——你能超过我吗？</string>
+    <string name="share_copied">已复制到剪贴板！</string>
+    <string name="share_copy_hint">（按 Ctrl+V 粘贴）</string>
+
+    <!-- ===== Accessibility labels ===== -->
+    <string name="access_open_history">打开统计和历史</string>
+    <string name="access_open_settings">打开设置</string>
+    <string name="access_back">返回</string>
+    <string name="access_pause">暂停游戏</string>
+    <string name="access_resume">继续游戏</string>
+
+    <!-- ===== Pause ===== -->
+    <string name="button_pause">⏸</string>
+    <string name="button_resume">▶</string>
+    <string name="pause_overlay_title">已暂停</string>
+    <string name="pause_overlay_resume">继续</string>
+
+    <!-- ===== Challenge buttons ===== -->
+    <string name="challenge_daily">每日</string>
+    <string name="challenge_timer">计时</string>
+
+    <!-- ===== Mid-game restart confirmation ===== -->
+    <string name="dialog_confirm_title">重新开始？</string>
+    <string name="dialog_confirm_message">当前游戏进度将丢失。确定继续吗？</string>
+    <string name="dialog_action_cancel">取消</string>
+    <string name="dialog_action_confirm">重新开始</string>
+</resources>

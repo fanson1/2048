@@ -7,7 +7,7 @@ import com.finley.android.merge2048.data.GameRepository
 import com.finley.android.merge2048.data.SettingsRepository
 import com.finley.android.merge2048.data.SoundEvent
 import com.finley.android.merge2048.data.SoundService
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameRecord
 import com.finley.android.merge2048.domain.GameTheme

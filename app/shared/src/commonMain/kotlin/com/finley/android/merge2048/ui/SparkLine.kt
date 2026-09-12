@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.unit.dp
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 
 /**
  * Tiny line chart that draws a series of [points] as a smoothed curve. Renders

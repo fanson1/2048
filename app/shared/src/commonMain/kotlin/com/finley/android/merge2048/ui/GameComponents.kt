@@ -67,8 +67,8 @@ import merge2048.app.shared.generated.resources.undo_button_desc_with_count
 import merge2048.app.shared.generated.resources.undo_button_text
 import merge2048.app.shared.generated.resources.undo_button_text_with_count
 import org.jetbrains.compose.resources.stringResource
-import com.finley.android.merge2048.GameColors
-import com.finley.android.merge2048.formatScore
+import com.finley.android.merge2048.ui.theme.GameColors
+import com.finley.android.merge2048.ui.theme.formatScore
 
 /**
  * Reusable presentational building blocks of the Merge2048 design system.

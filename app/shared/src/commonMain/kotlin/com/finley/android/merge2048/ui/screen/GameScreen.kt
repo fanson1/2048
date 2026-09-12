@@ -1,4 +1,4 @@
-package com.finley.android.merge2048
+package com.finley.android.merge2048.ui.screen
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -66,6 +66,7 @@ import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.domain.MoveAnimationData
 import com.finley.android.merge2048.presentation.GameViewModel
 import com.finley.android.merge2048.presentation.rememberGameViewModel
+import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.ui.ComboBadge
 import com.finley.android.merge2048.ui.BoardSizeSelector
 import com.finley.android.merge2048.ui.ConfettiCelebration

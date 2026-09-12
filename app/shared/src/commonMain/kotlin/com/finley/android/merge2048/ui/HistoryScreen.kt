@@ -49,10 +49,10 @@ import merge2048.app.shared.generated.resources.time_ago_hours_format
 import merge2048.app.shared.generated.resources.time_ago_minutes_format
 import merge2048.app.shared.generated.resources.time_ago_now
 import merge2048.app.shared.generated.resources.time_ago_weeks_format
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.domain.GameRecord
 import com.finley.android.merge2048.domain.LifetimeStats
-import com.finley.android.merge2048.formatScore
+import com.finley.android.merge2048.ui.theme.formatScore
 import org.jetbrains.compose.resources.stringResource
 
 /**

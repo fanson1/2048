@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 import merge2048.app.shared.generated.resources.Res
 import merge2048.app.shared.generated.resources.merge_combo_label_format
 import merge2048.app.shared.generated.resources.merge_score_popup_format
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 import org.jetbrains.compose.resources.stringResource
 
 /**

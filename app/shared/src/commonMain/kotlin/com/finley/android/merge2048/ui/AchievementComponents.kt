@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import merge2048.app.shared.generated.resources.Res
 import merge2048.app.shared.generated.resources.achievement_unlocked_toast_format
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.domain.Achievement
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource

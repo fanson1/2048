@@ -53,7 +53,7 @@ import merge2048.app.shared.generated.resources.stat_label_best_max_tile
 import merge2048.app.shared.generated.resources.stat_label_best_score_value
 import merge2048.app.shared.generated.resources.stat_label_games_played
 import merge2048.app.shared.generated.resources.stat_label_total_score
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.domain.AnimationLevel
 import com.finley.android.merge2048.domain.Achievement
 import com.finley.android.merge2048.domain.UserPreferences

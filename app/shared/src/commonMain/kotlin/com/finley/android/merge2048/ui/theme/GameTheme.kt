@@ -1,15 +1,24 @@
-package com.finley.android.merge2048
+package com.finley.android.merge2048.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import com.finley.android.merge2048.domain.GameTheme
 
+/**
+ * Centralised colour palette for the game UI. Each property delegates to the
+ * active [GameTheme] so the entire UI updates when the user switches themes.
+ *
+ * The mutable singleton is updated via [ProvideGameColors] at the top of the
+ * composition tree. Composable helpers [tileBackgroundColor] and
+ * [tileTextColor] read from the same source so tile rendering is always
+ * consistent with the active theme.
+ */
 object GameColors {
     internal var currentTheme: GameTheme = GameTheme.Classic
 
     val AppBackground get() = currentTheme.appBackground
-    val BoardBackground get() = Color(0xFFBBADA0) // fixed for all themes
+    val BoardBackground get() = Color(0xFFBBADA0)
     val HeaderText get() = currentTheme.headerText
     val SubText get() = currentTheme.subText
     val ButtonBackground get() = currentTheme.buttonBackground
@@ -23,7 +32,7 @@ object GameColors {
     val ButtonLabel get() = currentTheme.buttonLabel
     val SettingsBackground get() = currentTheme.appBackground
 
-    // Tile accent colors (fixed, same in light & dark)
+    /** Tile accent colours that remain constant across all themes. */
     val Tile2 = Color(0xFFEEE4DA)
     val Tile4 = Color(0xFFEDE0C8)
     val Tile8 = Color(0xFFF2B179)
@@ -37,17 +46,17 @@ object GameColors {
     val Tile2048 = Color(0xFFEDC22E)
     val TileSuper = Color(0xFF3C3A32)
 
-    /** Apply a theme to the global color palette. */
+    /** Apply a theme to the global colour palette. */
     fun apply(theme: GameTheme) {
         currentTheme = theme
     }
-
-    /** Legacy: apply based on dark-mode flag (uses Classic or Dark theme). */
-    fun apply(darkMode: Boolean) {
-        currentTheme = if (darkMode) GameTheme.Dark else GameTheme.Classic
-    }
 }
 
+/**
+ * Provides the active [GameTheme] and dark-mode flag via [CompositionLocal]s
+ * and synchronises the global [GameColors] singleton. Must be called once at
+ * the root of the composition tree.
+ */
 @Composable
 fun ProvideGameColors(darkMode: Boolean, themeId: String = "classic", content: @Composable () -> Unit) {
     val theme = GameTheme.byId(themeId)
@@ -63,10 +72,12 @@ fun ProvideGameColors(darkMode: Boolean, themeId: String = "classic", content: @
 val LocalGameDark = staticCompositionLocalOf { false }
 val LocalGameTheme = staticCompositionLocalOf { GameTheme.Classic as GameTheme }
 
+/** Returns the background colour for the given tile [value] using the active theme. */
 fun tileBackgroundColor(value: Int): Color {
     return GameColors.currentTheme.tileBackgroundColor(value)
 }
 
+/** Returns the text colour for the given tile [value] using the active theme. */
 fun tileTextColor(value: Int): Color {
     return GameColors.currentTheme.tileTextColor(value)
 }

@@ -1,21 +1,34 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ProGuard rules for Merge2048.
+# See https://developer.android.com/build/shrink-r8
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ---- kotlinx.serialization ----
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.AnnotationsKt
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Keep `Companion` object fields of serializable classes.
+-keep,includedescriptorclasses class com.finley.android.merge2048.**$$serializer { *; }
+
+-keepclassmembers class com.finley.android.merge2048.domain.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.finley.android.merge2048.domain.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# ---- General Android / R8 ----
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
+
+# Keep Compose tooling preview functions.
+-keep class androidx.compose.ui.tooling.** { *; }
+
+# ---- Ktor (server module) ----
+-keep class io.ktor.** { *; }
+-dontwarn io.ktor.**

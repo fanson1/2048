@@ -1,4 +1,4 @@
-package com.finley.android.merge2048
+package com.finley.android.merge2048.ui.screen
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -43,6 +43,10 @@ import androidx.compose.ui.unit.sp
 import com.finley.android.merge2048.domain.Direction
 import com.finley.android.merge2048.domain.MoveAnimationData
 import com.finley.android.merge2048.domain.TileMovement
+import com.finley.android.merge2048.ui.theme.GameColors
+import com.finley.android.merge2048.ui.theme.tileBackgroundColor
+import com.finley.android.merge2048.ui.theme.tileFontFraction
+import com.finley.android.merge2048.ui.theme.tileTextColor
 import merge2048.app.shared.generated.resources.Res
 import merge2048.app.shared.generated.resources.board_swipe_to_play
 import merge2048.app.shared.generated.resources.tile_content_desc_empty

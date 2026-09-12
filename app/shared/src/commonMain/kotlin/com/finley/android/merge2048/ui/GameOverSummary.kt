@@ -55,9 +55,9 @@ import merge2048.app.shared.generated.resources.game_over_title
 import merge2048.app.shared.generated.resources.share_button
 import merge2048.app.shared.generated.resources.share_copied
 import merge2048.app.shared.generated.resources.share_message_template
-import com.finley.android.merge2048.GameColors
+import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.data.ShareService
-import com.finley.android.merge2048.formatScore
+import com.finley.android.merge2048.ui.theme.formatScore
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
