@@ -23,6 +23,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -32,6 +33,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.foundation.focusable
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -72,12 +74,14 @@ fun SwipeableGameBoard(
     moveAnimationData: MoveAnimationData? = null
 ) {
     val focusRequester = remember { FocusRequester() }
+    val haptics = LocalHapticFeedback.current
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     var lastDirection by remember { mutableStateOf<Direction?>(null) }
     var hasSwiped by remember { mutableStateOf(false) }
 
     fun fire(direction: Direction) {
+        haptics.performHapticFeedback(HapticFeedbackType.LongPress)
         lastDirection = direction
         hasSwiped = true
         onSwipe(direction)
@@ -309,25 +313,32 @@ private fun AnimatedTile(
             else -> Color(0x00000000)
         }
 
-        val infiniteTransition = rememberInfiniteTransition(label = "tile-glow")
-        val glowAlpha by infiniteTransition.animateFloat(
-            initialValue = if (isMilestone) 0.3f else 0.1f,
-            targetValue = if (isMilestone) 0.7f else 0.3f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(if (isMilestone) 800 else 1500, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "glow-pulse"
-        )
-        val scalePulse by infiniteTransition.animateFloat(
-            initialValue = 1f,
-            targetValue = if (isMilestone) 1.02f else 1f,
-            animationSpec = infiniteRepeatable(
-                animation = tween(1200, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Reverse
-            ),
-            label = "scale-pulse"
-        )
+        // Only high tiles get the pulsing glow + scale animation. Empty cells and
+        // ordinary tiles render fully static — an infinite transition per cell would
+        // otherwise drive recomposition for the entire 6x6 board every frame.
+        var glowAlpha = 0f
+        var scalePulse = 1f
+        if (isHigh) {
+            val infiniteTransition = rememberInfiniteTransition(label = "tile-glow")
+            glowAlpha = infiniteTransition.animateFloat(
+                initialValue = if (isMilestone) 0.3f else 0.1f,
+                targetValue = if (isMilestone) 0.7f else 0.3f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(if (isMilestone) 800 else 1500, easing = LinearEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "glow-pulse"
+            ).value
+            scalePulse = infiniteTransition.animateFloat(
+                initialValue = 1f,
+                targetValue = if (isMilestone) 1.02f else 1f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1200, easing = FastOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "scale-pulse"
+            ).value
+        }
 
         val glowModifier = if (isHigh) {
             modifier
@@ -352,7 +363,7 @@ private fun AnimatedTile(
             contentAlignment = Alignment.Center
         ) {
             // Main tile content — background + text slide/scale together.
-            Box(
+            BoxWithConstraints(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
@@ -365,9 +376,10 @@ private fun AnimatedTile(
                 contentAlignment = Alignment.Center
             ) {
                 if (value != 0) {
+                    val cellFont = (maxWidth.value * tileFontFraction(value)).sp
                     Text(
                         text = value.toString(),
-                        fontSize = tileFontSize(value).sp,
+                        fontSize = cellFont,
                         fontWeight = FontWeight.Bold,
                         color = tileTextColor(value),
                         textAlign = TextAlign.Center,
@@ -381,7 +393,7 @@ private fun AnimatedTile(
             // the main tile's so the two translations do NOT add up.
             if (movement is TileMovement.Merged && mergeSecondAlpha.value > 0f) {
                 val halfValue = movement.value / 2
-                Box(
+                BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
@@ -392,9 +404,10 @@ private fun AnimatedTile(
                         .background(tileBackgroundColor(halfValue), RoundedCornerShape(8.dp)),
                     contentAlignment = Alignment.Center
                 ) {
+                    val cellFont = (maxWidth.value * tileFontFraction(halfValue)).sp
                     Text(
                         text = halfValue.toString(),
-                        fontSize = tileFontSize(halfValue).sp,
+                        fontSize = cellFont,
                         fontWeight = FontWeight.Bold,
                         color = tileTextColor(halfValue),
                         textAlign = TextAlign.Center,

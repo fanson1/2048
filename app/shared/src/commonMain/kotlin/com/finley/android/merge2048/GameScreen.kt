@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +19,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -26,10 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.access_open_history
+import merge2048.app.shared.generated.resources.access_open_settings
 import merge2048.app.shared.generated.resources.dialog_win_keep_going
 import merge2048.app.shared.generated.resources.dialog_win_play_again
 import merge2048.app.shared.generated.resources.dialog_win_subtitle
@@ -41,6 +49,8 @@ import merge2048.app.shared.generated.resources.game_title_2048
 import merge2048.app.shared.generated.resources.icon_chart
 import merge2048.app.shared.generated.resources.icon_settings
 import merge2048.app.shared.generated.resources.placeholder_em_dash
+import merge2048.app.shared.generated.resources.pause_overlay_resume
+import merge2048.app.shared.generated.resources.pause_overlay_title
 import merge2048.app.shared.generated.resources.stat_label_best
 import merge2048.app.shared.generated.resources.stat_label_max
 import merge2048.app.shared.generated.resources.stat_label_moves
@@ -61,6 +71,7 @@ import com.finley.android.merge2048.ui.GameOverSummary
 import com.finley.android.merge2048.ui.GameOverlay
 import com.finley.android.merge2048.ui.MergePopups
 import com.finley.android.merge2048.ui.NewGameButton
+import com.finley.android.merge2048.ui.PauseButton
 import com.finley.android.merge2048.ui.ScoreBlock
 import com.finley.android.merge2048.ui.StatPill
 import com.finley.android.merge2048.ui.TileProgressBar
@@ -175,6 +186,10 @@ internal fun GameContent(
                     NewGameButton(
                         onClick = { onIntent(GameIntent.NewGame) }
                     )
+                    PauseButton(
+                        paused = state.isPaused,
+                        onClick = { onIntent(GameIntent.TogglePause) }
+                    )
                     DailyChallengeButton(
                         onClick = { onIntent(GameIntent.StartDailyChallenge(seed = dailyChallengeSeed)) }
                     )
@@ -199,6 +214,7 @@ internal fun GameContent(
                 board = state.board,
                 showWin = state.showWinDialog,
                 isGameOver = state.isGameOver,
+                isPaused = state.isPaused,
                 score = state.score,
                 bestScore = state.bestScore,
                 maxTile = state.maxTile,
@@ -206,6 +222,7 @@ internal fun GameContent(
                 onNewGame = { onIntent(GameIntent.NewGame) },
                 onContinue = { onIntent(GameIntent.ContinueAfterWin) },
                 onDismissWin = { onIntent(GameIntent.DismissWinDialog) },
+                onTogglePause = { onIntent(GameIntent.TogglePause) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
@@ -215,7 +232,7 @@ internal fun GameContent(
                 boardSize = state.boardSize,
                 moveCount = state.moveCount,
                 totalMerges = state.totalMerges,
-                isNewBest = state.score >= state.bestScore && state.score > 0,
+                isNewBest = state.score > state.bestAtSessionStart && state.score > 0,
                 shareService = shareService,
                 moveAnimationData = state.moveAnimationData
             )
@@ -316,6 +333,7 @@ private fun BoardAndOverlays(
     board: List<List<Int>>,
     showWin: Boolean,
     isGameOver: Boolean,
+    isPaused: Boolean,
     score: Int,
     bestScore: Int,
     maxTile: Int,
@@ -323,6 +341,7 @@ private fun BoardAndOverlays(
     onNewGame: () -> Unit,
     onContinue: () -> Unit,
     onDismissWin: () -> Unit,
+    onTogglePause: () -> Unit,
     modifier: Modifier = Modifier,
     lastMergePoints: Int = 0,
     lastMergePositions: List<Triple<Int, Int, Int>> = emptyList(),
@@ -405,15 +424,55 @@ private fun BoardAndOverlays(
                 shareService = shareService,
                 boardSize = boardSize
             )
+
+            // Pause overlay
+            if (isPaused && !isGameOver) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(GameColors.OverlayScrim)
+                        .clickable { onTogglePause() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = stringResource(Res.string.pause_overlay_title),
+                            fontSize = 40.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 6.sp,
+                            color = GameColors.HeaderText
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Button(
+                            onClick = onTogglePause,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = GameColors.ButtonBackground
+                            ),
+                            shape = RoundedCornerShape(14.dp),
+                            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp)
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.pause_overlay_resume),
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.5.sp,
+                                color = GameColors.ButtonLabel
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
 private fun ChartIcon(onClick: () -> Unit) {
+    val desc = stringResource(Res.string.access_open_history)
     Box(
         modifier = Modifier
             .clickable { onClick() }
+            .semantics { contentDescription = desc }
             .padding(horizontal = 4.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -427,9 +486,11 @@ private fun ChartIcon(onClick: () -> Unit) {
 
 @Composable
 private fun SettingsIcon(onClick: () -> Unit) {
+    val desc = stringResource(Res.string.access_open_settings)
     Box(
         modifier = Modifier
             .clickable { onClick() }
+            .semantics { contentDescription = desc }
             .padding(horizontal = 4.dp, vertical = 4.dp),
         contentAlignment = Alignment.Center
     ) {

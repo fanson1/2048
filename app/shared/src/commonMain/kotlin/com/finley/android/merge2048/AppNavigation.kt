@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.finley.android.merge2048.domain.DailyChallenge
 import com.finley.android.merge2048.domain.GameIntent
 import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.domain.GameTheme
@@ -29,6 +30,7 @@ fun AppNavigation(viewModel: GameViewModel) {
     val prefs by viewModel.preferences.collectAsState()
     val records by viewModel.history.collectAsState()
     var screen by remember { mutableStateOf(GameScreen.GAME) }
+    val dailySeed = remember { DailyChallenge.seedAt(kotlin.time.Clock.System.now().toEpochMilliseconds()) }
 
     // Apply dark mode whenever prefs change.
     ProvideGameColors(darkMode = prefs.darkMode, themeId = prefs.themeId) {
@@ -37,7 +39,11 @@ fun AppNavigation(viewModel: GameViewModel) {
             GameColors.apply(GameTheme.byId(prefs.themeId))
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .windowInsetsPadding(WindowInsets.safeDrawing)
+        ) {
             when (screen) {
                 GameScreen.GAME -> {
                     GameContent(
@@ -47,7 +53,8 @@ fun AppNavigation(viewModel: GameViewModel) {
                         onOpenHistory = { screen = GameScreen.HISTORY },
                         onDismissAchievement = { id ->
                             viewModel.onIntent(GameIntent.ConsumeAchievement(id))
-                        }
+                        },
+                        dailyChallengeSeed = dailySeed
                     )
                 }
                 GameScreen.SETTINGS -> {
@@ -75,7 +82,6 @@ fun AppNavigation(viewModel: GameViewModel) {
                     }
                 },
                 modifier = Modifier
-                    .statusBarsPadding()
                     .padding(top = 8.dp)
             )
 

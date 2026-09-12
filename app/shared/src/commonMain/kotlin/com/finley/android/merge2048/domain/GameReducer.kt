@@ -17,6 +17,19 @@ class GameReducer(
     private var pendingAchievements: ArrayDeque<Achievement> = ArrayDeque()
     private var didUseUndoThisGame: Boolean = false
     private var winDialogShown: Boolean = false
+    /**
+     * Guards against writing more than one history record for the same game.
+     * Set once a finished-game record is emitted; cleared whenever a fresh game
+     * starts (new game, board-size change, challenges, restore). Not cleared by
+     * undo, so a player who dies, undoes, and dies again is only recorded once.
+     */
+    private var recordEmittedForCurrentGame: Boolean = false
+    /**
+     * Best score at the moment the current game started. Used by the UI to decide
+     * whether the running score is a genuine new record (score > this), instead of
+     * flashing "NEW RECORD!" on the very first move just because bestScore caught up.
+     */
+    private var sessionBestAtStart: Int = 0
 
     // Timed challenge state
     private var isTimedMode: Boolean = false
@@ -28,6 +41,7 @@ class GameReducer(
         return when (intent) {
             is GameIntent.Move -> handleMove(previous, intent.direction)
             is GameIntent.NewGame -> handleNewGame()
+            is GameIntent.TogglePause -> previous.copy(isPaused = !previous.isPaused)
             is GameIntent.StartDailyChallenge -> handleDailyChallenge(intent.boardSize, intent.seed)
             is GameIntent.ChangeBoardSize -> handleChangeBoardSize(intent.boardSize)
             is GameIntent.StartTimedChallenge -> handleTimedChallenge(intent.boardSize, intent.durationSeconds)
@@ -52,17 +66,22 @@ class GameReducer(
      */
     private fun handleDailyChallenge(boardSize: Int, seed: Int): GameState {
         engine = GameEngine(boardSize = boardSize, seed = seed)
+        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
         didUseUndoThisGame = false
         winDialogShown = false
+        recordEmittedForCurrentGame = false
         pendingAchievements.clear()
+        prefs = prefs.copy(gamesPlayed = prefs.gamesPlayed + 1)
         return emitState()
     }
 
     private fun handleChangeBoardSize(boardSize: Int): GameState {
         prefs = prefs.copy(boardSize = boardSize)
         engine = GameEngine(boardSize = boardSize)
+        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
         didUseUndoThisGame = false
         winDialogShown = false
+        recordEmittedForCurrentGame = false
         pendingAchievements.clear()
         val newGamesPlayed = prefs.gamesPlayed + 1
         prefs = prefs.copy(gamesPlayed = newGamesPlayed)
@@ -72,8 +91,10 @@ class GameReducer(
     private fun handleTimedChallenge(boardSize: Int, durationSeconds: Int): GameState {
         prefs = prefs.copy(boardSize = boardSize)
         engine = GameEngine(boardSize = boardSize)
+        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
         didUseUndoThisGame = false
         winDialogShown = false
+        recordEmittedForCurrentGame = false
         pendingAchievements.clear()
         isTimedMode = true
         timedRemainingSeconds = durationSeconds
@@ -98,11 +119,20 @@ class GameReducer(
     private fun handleTimerExpired(): GameState {
         isTimedMode = false
         timedRemainingSeconds = 0
+        // A finished timed session counts as a played game and writes a history
+        // record, but only if the board isn't already game-over (that path is
+        // recorded by handleMove and must not be double-counted here).
+        if (!engine.isGameOver && !recordEmittedForCurrentGame) {
+            prefs = prefs.copy(gamesPlayed = prefs.gamesPlayed + 1)
+            emitGameOverRecord()
+            recordEmittedForCurrentGame = true
+        }
         // The game continues but timed mode is over — player sees their final score
         return emitState()
     }
 
     private fun handleMove(previous: GameState, direction: Direction): GameState {
+        if (previous.isPaused) return previous
         val beforeMaxTile = engine.maxTile
         val beforeScore = engine.score
         val wasGameOver = engine.isGameOver
@@ -110,9 +140,10 @@ class GameReducer(
         val moved = engine.move(direction)
         if (!moved && !engine.isGameOver) return previous
 
-        // Detect transition into game-over and emit a GameRecord.
-        if (!wasGameOver && engine.isGameOver) {
+        // Detect transition into game-over and emit a GameRecord (at most once per game).
+        if (!wasGameOver && engine.isGameOver && !recordEmittedForCurrentGame) {
             emitGameOverRecord()
+            recordEmittedForCurrentGame = true
         }
 
         val winContext = if (engine.hasWon && !previous.hasWon) {
@@ -156,8 +187,10 @@ class GameReducer(
 
     private fun handleNewGame(): GameState {
         engine = GameEngine(boardSize = prefs.boardSize)
+        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
         didUseUndoThisGame = false
         winDialogShown = false
+        recordEmittedForCurrentGame = false
         pendingAchievements.clear()
 
         val newGamesPlayed = prefs.gamesPlayed + 1
@@ -186,9 +219,11 @@ class GameReducer(
     private fun handleRestore(intent: GameIntent.RestoreGame): GameState {
         prefs = intent.prefs
         engine = GameEngine(boardSize = intent.snapshot.boardSize)
-        engine.setBoardForTesting(intent.snapshot.board)
+        engine.setBoardForTesting(intent.snapshot.board, restoredScore = intent.snapshot.score)
+        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
         didUseUndoThisGame = false
         winDialogShown = intent.snapshot.hasWon // already shown, don't show again
+        recordEmittedForCurrentGame = false
         pendingAchievements.clear()
         return emitState().copy(moveCount = intent.snapshot.moveCount)
     }
@@ -235,34 +270,35 @@ class GameReducer(
         val comboBonus = computeComboBonus()
         val displayedScore = engine.score + comboBonus
 
-        return GameState(
-            board = engine.getBoard(),
-            score = displayedScore,
-            bestScore = maxOf(prefs.bestScore, displayedScore),
-            bestScoreByBoardSize = prefs.bestScoreByBoardSize,
-            isGameOver = engine.isGameOver,
-            hasWon = engine.hasWon,
-            showWinDialog = shouldShowWin,
-            maxTile = engine.maxTile,
-            bestMaxTile = prefs.bestMaxTile,
-            bestMaxTileByBoardSize = prefs.bestMaxTileByBoardSize,
-            canUndo = engine.canUndo,
-            undoCount = engine.undoCount,
-            moveCount = engine.moveCount,
-            boardSize = engine.boardSize,
-            user = prefs,
-            pendingAchievementId = pendingAchievements.firstOrNull()?.id,
-            lastMergePoints = engine.lastMoveScore,
-            comboCount = engine.comboCount,
-            comboMultiplier = engine.comboMultiplier,
-            lastMergePositions = engine.lastMergePositions,
-            totalMerges = engine.totalMergesThisGame,
-            moveAnimationData = engine.lastMoveAnimationData,
-            isTimedMode = isTimedMode,
-            timedRemainingSeconds = timedRemainingSeconds,
-            timedDurationSeconds = timedDurationSeconds,
-            timedBestScore = timedBestScore
-        )
+return GameState(
+                board = engine.getBoard(),
+                score = engine.score,
+                bestScore = prefs.bestScore,
+                bestScoreByBoardSize = prefs.bestScoreByBoardSize,
+                isGameOver = engine.isGameOver,
+                hasWon = engine.hasWon,
+                showWinDialog = shouldShowWin,
+                maxTile = engine.maxTile,
+                bestMaxTile = prefs.bestMaxTile,
+                bestMaxTileByBoardSize = prefs.bestMaxTileByBoardSize,
+                canUndo = engine.canUndo,
+                undoCount = engine.undoCount,
+                moveCount = engine.moveCount,
+                boardSize = engine.boardSize,
+                user = prefs,
+                pendingAchievementId = pendingAchievements.firstOrNull()?.id,
+                lastMergePoints = engine.lastMoveScore,
+                comboCount = engine.comboCount,
+                comboMultiplier = engine.comboMultiplier,
+                lastMergePositions = engine.lastMergePositions,
+                totalMerges = engine.totalMergesThisGame,
+                moveAnimationData = engine.lastMoveAnimationData,
+                isTimedMode = isTimedMode,
+                timedRemainingSeconds = timedRemainingSeconds,
+                timedDurationSeconds = timedDurationSeconds,
+                timedBestScore = timedBestScore,
+                bestAtSessionStart = sessionBestAtStart
+            )
     }
 
     internal fun seedBoardForTesting(values: List<List<Int>>) {

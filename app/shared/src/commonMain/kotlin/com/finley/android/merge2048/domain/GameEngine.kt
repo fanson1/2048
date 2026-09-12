@@ -350,7 +350,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         return board.map { it.toList() }
     }
 
-    internal fun setBoardForTesting(values: List<List<Int>>) {
+    internal fun setBoardForTesting(values: List<List<Int>>, restoredScore: Int = 0) {
         require(values.size == boardSize && values.all { it.size == boardSize }) {
             "Test board must be ${boardSize}x${boardSize}"
         }
@@ -359,7 +359,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
                 board[i][j] = values[i][j]
             }
         }
-        score = 0
+        score = restoredScore
         lastMoveScore = 0
         lastMoveMergeCount = 0
         totalMergesThisGame = 0

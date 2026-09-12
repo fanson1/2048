@@ -80,7 +80,7 @@ fun GameOverSummary(
     boardSize: Int = 4
 ) {
     var shareStatus by remember { mutableStateOf<String?>(null) }
-    val shareMessage = stringResource(Res.string.share_message_template, score, boardSize.toString())
+    val shareMessage = stringResource(Res.string.share_message_template, score, boardSize)
     val copiedText = stringResource(Res.string.share_copied)
 
     fun sharePressed() {
@@ -97,7 +97,7 @@ fun GameOverSummary(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(16.dp))
-                .background(Color(0x99000000))
+                .background(GameColors.OverlayScrim)
                 .padding(16.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -105,7 +105,7 @@ fun GameOverSummary(
                 modifier = Modifier
                     .shadow(16.dp, RoundedCornerShape(24.dp))
                     .clip(RoundedCornerShape(24.dp))
-                    .background(Color(0xFF1A1A2E))
+                    .background(GameColors.Surface)
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 24.dp, vertical = 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -116,14 +116,14 @@ fun GameOverSummary(
                     else stringResource(Res.string.game_over_title),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Black,
-                    color = if (isNewBest) GameColors.Tile2048 else Color.White
+                    color = if (isNewBest) GameColors.Tile2048 else GameColors.HeaderText
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = getEncouragementMessage(maxTile, score),
                     fontSize = 12.sp,
-                    color = Color.White.copy(alpha = 0.6f),
+                    color = GameColors.SubText,
                     textAlign = TextAlign.Center
                 )
 
@@ -133,7 +133,7 @@ fun GameOverSummary(
                 Column(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFF252540))
+                        .background(GameColors.ScoreBlockBackground)
                         .padding(horizontal = 32.dp, vertical = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -142,13 +142,13 @@ fun GameOverSummary(
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.5.sp,
-                        color = Color.White.copy(alpha = 0.5f)
+                        color = GameColors.ScoreLabel
                     )
                     Text(
                         text = score.toString(),
                         fontSize = 36.sp,
                         fontWeight = FontWeight.Black,
-                        color = Color.White
+                        color = GameColors.HeaderText
                     )
                 }
 
@@ -216,7 +216,7 @@ fun GameOverSummary(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 0.5.sp,
-                        color = Color.White
+                        color = GameColors.ButtonLabel
                     )
                 }
 
@@ -264,7 +264,7 @@ fun GameOverSummary(
 private fun SummaryStat(
     label: String,
     value: String,
-    accent: Color = Color.White
+    accent: Color = GameColors.HeaderText
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
@@ -272,7 +272,7 @@ private fun SummaryStat(
             fontSize = 9.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 1.sp,
-            color = Color.White.copy(alpha = 0.4f)
+            color = GameColors.SubText
         )
         Text(
             text = value,

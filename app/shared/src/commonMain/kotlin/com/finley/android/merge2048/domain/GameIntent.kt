@@ -18,6 +18,8 @@ sealed class GameIntent {
     data object DismissWinDialog : GameIntent()
     data object ContinueAfterWin : GameIntent()
     data object Undo : GameIntent()
+    /** Pause / resume the current round. While paused, moves and the timer are suspended. */
+    data object TogglePause : GameIntent()
 
     /** Restore an in-progress game from a persisted snapshot. */
     data class RestoreGame(val snapshot: GameSnapshot, val prefs: UserPreferences) : GameIntent()

@@ -148,6 +148,7 @@
     <string name="stats_card_last_game">LAST GAME</string>
     <string name="stats_card_by_board_size">BY BOARD SIZE</string>
     <string name="recent_games_section_title">RECENT GAMES</string>
+    <string name="leaderboard_section_title">HALL OF FAME</string>
     <string name="stats_empty_message">Play your first game to see your stats here.</string>
     <string name="stats_board_size_format">%1$dx%1$d</string>
     <string name="stats_per_size_summary_format">best %1$d • %2$d games</string>
@@ -272,7 +273,24 @@
     <string name="share_button">Share</string>
     <string name="share_title">Share your score</string>
     <string name="share_subtitle">Challenge your friends!</string>
-    <string name="share_message_template">I scored {score} points on {games} 2048 board — can you beat me?</string>
+    <string name="share_message_template">I scored %1$d points on a %2$dx%2$d 2048 board — can you beat me?</string>
     <string name="share_copied">Copied to clipboard!</string>
     <string name="share_copy_hint">(Press Ctrl+V to paste)</string>
+
+    <!-- ===== Accessibility labels ===== -->
+    <string name="access_open_history">Open stats and history</string>
+    <string name="access_open_settings">Open settings</string>
+    <string name="access_back">Back</string>
+    <string name="access_pause">Pause game</string>
+    <string name="access_resume">Resume game</string>
+
+    <!-- ===== Pause ===== -->
+    <string name="button_pause">⏸</string>
+    <string name="button_resume">▶</string>
+    <string name="pause_overlay_title">PAUSED</string>
+    <string name="pause_overlay_resume">Resume</string>
+
+    <!-- ===== Challenge buttons ===== -->
+    <string name="challenge_daily">Daily</string>
+    <string name="challenge_timer">Timer</string>
 </resources>

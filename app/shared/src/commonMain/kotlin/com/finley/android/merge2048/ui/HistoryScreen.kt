@@ -13,15 +13,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.access_back
 import merge2048.app.shared.generated.resources.history_row_details_format
 import merge2048.app.shared.generated.resources.history_row_details_won_format
 import merge2048.app.shared.generated.resources.history_row_score_format
 import merge2048.app.shared.generated.resources.icon_back_arrow
+import merge2048.app.shared.generated.resources.leaderboard_section_title
 import merge2048.app.shared.generated.resources.placeholder_em_dash
 import merge2048.app.shared.generated.resources.recent_games_section_title
 import merge2048.app.shared.generated.resources.screen_stats_history_title
@@ -69,6 +73,7 @@ fun HistoryScreen(
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
         // ---- Header ----
+        val backDesc = stringResource(Res.string.access_back)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(Res.string.icon_back_arrow),
@@ -77,6 +82,7 @@ fun HistoryScreen(
                 color = GameColors.HeaderText,
                 modifier = Modifier
                     .clickable { onBack() }
+                    .semantics { contentDescription = backDesc }
                     .padding(end = 12.dp)
             )
             Text(
@@ -130,6 +136,24 @@ fun HistoryScreen(
                     value = stats.bestSingleMove.toString(),
                     modifier = Modifier.weight(1f)
                 )
+            }
+        }
+
+        // ---- Local leaderboard (top all-time) ----
+        val leaderboard = records.sortedByDescending { it.score }.take(5)
+        if (leaderboard.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = stringResource(Res.string.leaderboard_section_title),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp,
+                color = GameColors.SubText
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            for ((index, record) in leaderboard.withIndex()) {
+                LeaderboardRow(rank = index + 1, record = record)
+                Spacer(modifier = Modifier.height(6.dp))
             }
         }
 
@@ -264,6 +288,57 @@ private fun StatBlock(
             fontSize = 20.sp,
             fontWeight = FontWeight.Black,
             color = accent
+        )
+    }
+}
+
+@Composable
+private fun LeaderboardRow(rank: Int, record: GameRecord) {
+    val medalColor = when (rank) {
+        1 -> Color(0xFFF2B705) // gold
+        2 -> Color(0xFFB0C4D8) // silver
+        3 -> Color(0xFFCD7F32) // bronze
+        else -> GameColors.Surface
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(10.dp))
+            .background(GameColors.Surface)
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = rank.toString(),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Black,
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .width(26.dp)
+                .height(26.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(medalColor)
+                .padding(top = 2.dp)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(Res.string.history_row_score_format, record.score),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                color = GameColors.HeaderText
+            )
+            Text(
+                text = stringResource(Res.string.stats_board_size_format, record.boardSize),
+                fontSize = 11.sp,
+                color = GameColors.SubText
+            )
+        }
+        Text(
+            text = formatTimeAgo(record.finishedAtMs),
+            fontSize = 11.sp,
+            color = GameColors.SubText
         )
     }
 }

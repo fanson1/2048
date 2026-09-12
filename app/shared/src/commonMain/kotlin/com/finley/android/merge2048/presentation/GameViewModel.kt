@@ -79,7 +79,7 @@ class GameViewModel(
         // Timed challenge countdown ticker
         viewModelScope.launch {
             _state.collect { current ->
-                if (current.isTimedMode && current.timedRemainingSeconds > 0) {
+                if (current.isTimedMode && current.timedRemainingSeconds > 0 && !current.isPaused) {
                     kotlinx.coroutines.delay(1000)
                     onIntent(GameIntent.TimerTick)
                 }
@@ -108,12 +108,19 @@ class GameViewModel(
         // After a move, schedule a clear of the per-move animation data so it doesn't
         // persist in the state. This avoids the "tile background without number" bug
         // where a stale Spawned movement keeps the tile in a partially-animated state.
+        // We capture the moveId and only clear data that still matches it, so a rapid
+        // second move is never cleared prematurely by the first move's timer.
         if (intent is GameIntent.Move) {
+            val moveId = next.moveAnimationData?.moveId
             viewModelScope.launch {
                 kotlinx.coroutines.delay(500)
-                if (_state.value.moveAnimationData != null) {
+                if (moveId != null) {
                     _state.update { current ->
-                        reducer.reduce(current, GameIntent.ClearMoveAnimation)
+                        if (current.moveAnimationData?.moveId == moveId) {
+                            reducer.reduce(current, GameIntent.ClearMoveAnimation)
+                        } else {
+                            current
+                        }
                     }
                 }
             }
@@ -144,13 +151,13 @@ class GameViewModel(
             is GameIntent.TimerTick -> { /* silent */ }
             is GameIntent.TimerExpired -> soundService.play(SoundEvent.GameOver)
             is GameIntent.Undo -> soundService.play(SoundEvent.Undo)
+            is GameIntent.TogglePause -> { /* silent */ }
             is GameIntent.RestoreGame -> { /* silent */ }
             is GameIntent.ApplyPreferences -> { /* silent */ }
             is GameIntent.ConsumeAchievement -> soundService.play(SoundEvent.Achievement)
             is GameIntent.DismissWinDialog -> { /* silent */ }
             is GameIntent.ContinueAfterWin -> { /* silent */ }
             is GameIntent.ClearMoveAnimation -> { /* silent */ }
-            else -> {}
         }
     }
 

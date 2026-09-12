@@ -39,6 +39,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.access_pause
+import merge2048.app.shared.generated.resources.access_resume
+import merge2048.app.shared.generated.resources.button_pause
+import merge2048.app.shared.generated.resources.button_resume
+import merge2048.app.shared.generated.resources.challenge_daily
+import merge2048.app.shared.generated.resources.challenge_timer
 import merge2048.app.shared.generated.resources.combo_badge_text_format
 import merge2048.app.shared.generated.resources.icon_undo
 import merge2048.app.shared.generated.resources.new_game_button_desc
@@ -237,6 +243,40 @@ fun NewGameButton(
 }
 
 @Composable
+fun PauseButton(
+    paused: Boolean,
+    onClick: () -> Unit
+) {
+    val desc = if (paused)
+        stringResource(Res.string.access_resume)
+    else
+        stringResource(Res.string.access_pause)
+    Button(
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = GameColors.ButtonBackground.copy(alpha = 0.85f)
+        ),
+        shape = RoundedCornerShape(10.dp),
+        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+        elevation = ButtonDefaults.buttonElevation(
+            defaultElevation = 3.dp,
+            pressedElevation = 1.dp
+        ),
+        modifier = Modifier.semantics { contentDescription = desc }
+    ) {
+        Text(
+            text = if (paused)
+                stringResource(Res.string.button_resume)
+            else
+                stringResource(Res.string.button_pause),
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White
+        )
+    }
+}
+
+@Composable
 fun DailyChallengeButton(
     onClick: () -> Unit
 ) {
@@ -253,7 +293,7 @@ fun DailyChallengeButton(
         )
     ) {
         Text(
-            text = "Daily",
+            text = stringResource(Res.string.challenge_daily),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
@@ -281,7 +321,7 @@ fun TimedChallengeButton(
         )
     ) {
         Text(
-            text = "Timer",
+            text = stringResource(Res.string.challenge_timer),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
@@ -393,7 +433,7 @@ fun GameOverlay(
         modifier = Modifier
             .fillMaxSize()
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x99000000))
+            .background(GameColors.OverlayScrim)
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -401,7 +441,7 @@ fun GameOverlay(
             modifier = Modifier
                 .shadow(12.dp, RoundedCornerShape(20.dp))
                 .clip(RoundedCornerShape(20.dp))
-                .background(Color(0xFFFFFFFF))
+                .background(GameColors.Surface)
                 .padding(horizontal = 28.dp, vertical = 26.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -438,7 +478,7 @@ fun GameOverlay(
                     text = score.toString(),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Black,
-                    color = Color.White
+                    color = GameColors.HeaderText
                 )
             }
 

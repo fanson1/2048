@@ -60,24 +60,20 @@ fun ConfettiCelebration(
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "confetti")
-    val progress by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "confetti-progress"
-    )
+    // Play a single confetti burst (~3s); do not loop forever in the background.
+    val progress = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        progress.animateTo(1f, tween(3000, easing = LinearEasing))
+    }
+    val p = progress.value
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
 
-        for (p in particles) {
-            val currentX = (p.x + p.vx * progress * 100f).coerceIn(0f, 1f) * w
-            val currentY = ((p.y + p.vy * progress * 100f) % 1.5f).coerceIn(0f, 1f) * h
+        for (particle in particles) {
+            val currentX = (particle.x + particle.vx * p * 100f).coerceIn(0f, 1f) * w
+            val currentY = ((particle.y + particle.vy * p * 100f) % 1.5f).coerceIn(0f, 1f) * h
             val alpha = if (currentY > h * 0.9f) {
                 (1f - (currentY / h - 0.9f) * 10f).coerceIn(0f, 1f)
             } else {
@@ -85,8 +81,8 @@ fun ConfettiCelebration(
             }
 
             drawCircle(
-                color = p.color.copy(alpha = alpha * 0.9f),
-                radius = p.size,
+                color = particle.color.copy(alpha = alpha * 0.9f),
+                radius = particle.size,
                 center = Offset(currentX, currentY)
             )
         }

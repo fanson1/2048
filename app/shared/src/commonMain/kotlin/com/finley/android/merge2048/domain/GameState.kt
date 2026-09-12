@@ -33,5 +33,14 @@ data class GameState(
     val isTimedMode: Boolean = false,
     val timedRemainingSeconds: Int = 0,
     val timedDurationSeconds: Int = 0,
-    val timedBestScore: Int = 0
+    val timedBestScore: Int = 0,
+    /** True while the player has paused the round (moves & timer suspended). */
+    val isPaused: Boolean = false,
+    /**
+     * Best score the player had at the moment the current game started.
+     * The UI uses `score > bestAtSessionStart` to decide whether to flash
+     * "NEW RECORD!" — this avoids a false positive on the first few moves
+     * where the running score merely catches up to the stored best.
+     */
+    val bestAtSessionStart: Int = 0
 )

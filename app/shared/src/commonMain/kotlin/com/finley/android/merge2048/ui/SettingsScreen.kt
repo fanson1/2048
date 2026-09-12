@@ -15,10 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.access_back
 import merge2048.app.shared.generated.resources.icon_back_arrow
 import merge2048.app.shared.generated.resources.icon_check_mark
 import merge2048.app.shared.generated.resources.screen_settings_title
@@ -70,6 +73,7 @@ fun SettingsScreen(
             .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
         // ---- Header ----
+        val backDesc = stringResource(Res.string.access_back)
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = stringResource(Res.string.icon_back_arrow),
@@ -78,6 +82,7 @@ fun SettingsScreen(
                 color = GameColors.HeaderText,
                 modifier = Modifier
                     .clickable { onBack() }
+                    .semantics { contentDescription = backDesc }
                     .padding(end = 12.dp)
             )
             Text(

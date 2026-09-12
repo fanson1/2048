@@ -20,6 +20,7 @@ object GameColors {
     val TextLight get() = Color(0xFFF9F6F2)
     val ScoreLabel get() = currentTheme.scoreLabel
     val Surface get() = currentTheme.surface
+    val ButtonLabel get() = currentTheme.buttonLabel
     val SettingsBackground get() = currentTheme.appBackground
 
     // Tile accent colors (fixed, same in light & dark)
@@ -74,4 +75,15 @@ fun tileFontSize(value: Int): Int = when {
     value >= 1000 -> 20
     value >= 100 -> 26
     else -> 36
+}
+
+/**
+ * Fraction of the tile cell width to use as the tile font size. Larger tiles
+ * (4+ digits) need a smaller fraction so the number never overflows the cell,
+ * and the value adapts to smaller cells (e.g. 6x6 boards or portrait widths).
+ */
+fun tileFontFraction(value: Int): Float = when {
+    value >= 1000 -> 0.24f
+    value >= 100 -> 0.30f
+    else -> 0.40f
 }
