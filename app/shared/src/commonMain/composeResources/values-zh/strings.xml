@@ -36,7 +36,7 @@
     <string name="stat_label_best_score_value">最高分</string>
     <string name="stat_label_best_max_tile">最大方块</string>
     <string name="stat_label_total_score">总分</string>
-    <string name="stat_value_win_rate_format">%1$d%%</string>
+    <string name="stat_value_win_rate_format">%1$d%</string>
 
     <!-- ===== Win overlay ===== -->
     <string name="dialog_win_title">你赢了！</string>
@@ -99,7 +99,7 @@
 
     <!-- ===== Tile progress bar ===== -->
     <string name="progress_next_tile_format">下一个: %1$d</string>
-    <string name="progress_percentage_format">%1$d%%</string>
+    <string name="progress_percentage_format">%1$d%</string>
 
     <!-- ===== Tutorial overlay ===== -->
     <string name="tutorial_step_1_emoji">🎮</string>
