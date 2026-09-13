@@ -253,7 +253,7 @@ fun GameOverSummary(
                         text = stringResource(Res.string.game_over_close),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color.White.copy(alpha = 0.4f)
+                        color = GameColors.SubText
                     )
                 }
             }

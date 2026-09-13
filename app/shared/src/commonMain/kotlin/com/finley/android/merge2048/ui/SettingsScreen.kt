@@ -38,10 +38,14 @@ import merge2048.app.shared.generated.resources.settings_board_size_fast
 import merge2048.app.shared.generated.resources.settings_board_size_large
 import merge2048.app.shared.generated.resources.settings_board_size_massive
 import merge2048.app.shared.generated.resources.settings_dark_mode_label
+import merge2048.app.shared.generated.resources.settings_language_en
+import merge2048.app.shared.generated.resources.settings_language_system
+import merge2048.app.shared.generated.resources.settings_language_zh
 import merge2048.app.shared.generated.resources.settings_section_achievements
 import merge2048.app.shared.generated.resources.settings_section_animation
 import merge2048.app.shared.generated.resources.settings_section_appearance
 import merge2048.app.shared.generated.resources.settings_section_board_size
+import merge2048.app.shared.generated.resources.settings_section_language
 import merge2048.app.shared.generated.resources.settings_section_sound
 import merge2048.app.shared.generated.resources.settings_section_stats
 import merge2048.app.shared.generated.resources.settings_section_theme
@@ -53,6 +57,7 @@ import merge2048.app.shared.generated.resources.stat_label_best_max_tile
 import merge2048.app.shared.generated.resources.stat_label_best_score_value
 import merge2048.app.shared.generated.resources.stat_label_games_played
 import merge2048.app.shared.generated.resources.stat_label_total_score
+import com.finley.android.merge2048.data.setAppLocale
 import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.domain.AnimationLevel
 import com.finley.android.merge2048.domain.Achievement
@@ -94,6 +99,59 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(28.dp))
+
+        // ---- Language ----
+        SettingSection(stringResource(Res.string.settings_section_language)) {
+            val languages = listOf(
+                Triple("system", stringResource(Res.string.settings_language_system), "System default"),
+                Triple("en", stringResource(Res.string.settings_language_en), "English"),
+                Triple("zh", stringResource(Res.string.settings_language_zh), "简体中文")
+            )
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                for ((tag, label, _) in languages) {
+                    val selected = prefs.language == tag
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (selected) GameColors.ButtonBackground.copy(alpha = 0.15f)
+                                else GameColors.ScoreBlockBackground.copy(alpha = 0.3f)
+                            )
+                            .border(
+                                width = if (selected) 1.5.dp else 0.dp,
+                                color = if (selected) GameColors.ButtonBackground else Color.Transparent,
+                                shape = RoundedCornerShape(10.dp)
+                            )
+                            .clickable {
+                                val newPrefs = prefs.copy(language = tag)
+                                onUpdate(newPrefs)
+                                setAppLocale(tag)
+                            }
+                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = label,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (selected) GameColors.ButtonBackground else GameColors.HeaderText
+                        )
+                        if (selected) {
+                            Text(
+                                text = stringResource(Res.string.icon_check_mark),
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = GameColors.ButtonBackground
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // ---- Board Size ----
         SettingSection(stringResource(Res.string.settings_section_board_size)) {

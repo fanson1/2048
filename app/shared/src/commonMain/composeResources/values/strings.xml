@@ -116,6 +116,7 @@
     <string name="tutorial_got_it_button">Got it</string>
 
     <!-- ===== Settings sections ===== -->
+    <string name="settings_section_language">LANGUAGE</string>
     <string name="settings_section_board_size">BOARD SIZE</string>
     <string name="settings_section_theme">THEME</string>
     <string name="settings_section_animation">ANIMATION</string>
@@ -125,6 +126,9 @@
     <string name="settings_section_achievements">ACHIEVEMENTS</string>
 
     <!-- ===== Settings items ===== -->
+    <string name="settings_language_system">System default</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_zh">简体中文</string>
     <string name="settings_theme_locked_format">Locked: %1$s</string>
     <string name="settings_animation_full">Full</string>
     <string name="settings_animation_reduced">Reduced</string>

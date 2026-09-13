@@ -23,7 +23,9 @@ data class UserPreferences(
     val boardSize: Int = 4,
     val hasSeenTutorial: Boolean = false,
     val unlockedAchievementIds: Set<String> = emptySet(),
-    val themeId: String = "classic"
+    val themeId: String = "classic",
+    /** BCP 47 language tag. "system" defers to the OS locale. */
+    val language: String = "system"
 ) {
     companion object {
         val Default = UserPreferences()

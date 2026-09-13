@@ -57,6 +57,8 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
             implementation(libs.multiplatform.settings.datastore)
+            implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.core.ktx)
         }
         commonMain.dependencies {
             api(project(":core"))
