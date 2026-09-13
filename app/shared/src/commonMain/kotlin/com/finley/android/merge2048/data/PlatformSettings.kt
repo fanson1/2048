@@ -7,7 +7,7 @@ import com.russhwolf.settings.Settings
  * On other platforms this is a no-op. The app entry point should call it
  * once during composition so [createSettings] can resolve storage.
  */
-expect fun initPlatformStorage(context: Any)
+internal expect fun initPlatformStorage(context: Any)
 
 /**
  * Provides the platform-specific [Settings] instance used by the repositories.
