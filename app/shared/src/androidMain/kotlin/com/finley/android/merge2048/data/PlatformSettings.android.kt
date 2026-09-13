@@ -8,7 +8,7 @@ private const val PREF_NAME = "merge2048_prefs"
 
 private lateinit var appContext: Context
 
-internal actual fun initPlatformStorage(context: Any) {
+actual fun initPlatformStorage(context: Any) {
     appContext = (context as Context).applicationContext
 }
 

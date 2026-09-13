@@ -64,7 +64,7 @@
     <string name="game_over_avg_merge_label">平均合并</string>
     <string name="game_over_efficiency_label">效率</string>
     <string name="game_over_efficiency_zero">0%</string>
-    <string name="game_over_efficiency_format">%1$d%%</string>
+    <string name="game_over_efficiency_format">%1$d%</string>
     <string name="game_over_avg_merge_zero">0</string>
     <string name="game_over_play_again">再来一局</string>
     <string name="game_over_close">关闭</string>

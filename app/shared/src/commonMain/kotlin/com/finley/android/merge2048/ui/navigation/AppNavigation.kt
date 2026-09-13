@@ -16,7 +16,6 @@ import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.domain.GameTheme
 import com.finley.android.merge2048.domain.LifetimeStats
 import com.finley.android.merge2048.domain.UserPreferences
-import com.finley.android.merge2048.data.setAppLocale
 import com.finley.android.merge2048.presentation.GameViewModel
 import com.finley.android.merge2048.ui.AchievementToast
 import com.finley.android.merge2048.ui.HistoryScreen
@@ -53,11 +52,6 @@ fun AppNavigation(viewModel: GameViewModel) {
     ProvideGameColors(darkMode = prefs.darkMode, themeId = prefs.themeId) {
         LaunchedEffect(prefs.darkMode, prefs.themeId) {
             GameColors.apply(GameTheme.byId(prefs.themeId))
-        }
-
-        // Apply the persisted locale on first composition and whenever it changes.
-        LaunchedEffect(prefs.language) {
-            setAppLocale(prefs.language)
         }
 
         Box(
