@@ -14,6 +14,9 @@ class MainActivity : AppCompatActivity() {
         // while the activity context is created, so nothing else is needed here.
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Prevent the system from adding a translucent scrim to the navigation
+        // bar so the app's edge-to-edge background shows through it.
+        window.isNavigationBarContrastEnforced = false
 
         setContent {
             App()
