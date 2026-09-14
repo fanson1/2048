@@ -13,24 +13,47 @@ import com.finley.android.merge2048.domain.GameTheme
  * composition tree. Composable helpers [tileBackgroundColor] and
  * [tileTextColor] read from the same source so tile rendering is always
  * consistent with the active theme.
+ *
+ * When dark mode is enabled (via user preference or system setting), the UI
+ * chrome colours (backgrounds, text, buttons) are overridden with dark
+ * variants while tile colours remain from the selected [GameTheme].
  */
 object GameColors {
-    internal var currentTheme: GameTheme = GameTheme.Classic
+    // Backed by Compose state so every composable reading the palette below
+    // subscribes to theme/dark-mode changes and recomposes automatically.
+    internal var currentTheme: GameTheme by mutableStateOf(GameTheme.Classic)
+    private var darkMode: Boolean by mutableStateOf(false)
 
-    val AppBackground get() = currentTheme.appBackground
-    val BoardBackground get() = Color(0xFFBBADA0)
-    val HeaderText get() = currentTheme.headerText
-    val SubText get() = currentTheme.subText
-    val ButtonBackground get() = currentTheme.buttonBackground
-    val ScoreBlockBackground get() = currentTheme.scoreBlockBackground
-    val OverlayScrim get() = currentTheme.appBackground.copy(alpha = 0.85f)
-    val TileEmpty get() = currentTheme.tileEmpty
-    val TextDark get() = currentTheme.headerText
-    val TextLight get() = Color(0xFFF9F6F2)
-    val ScoreLabel get() = currentTheme.scoreLabel
-    val Surface get() = currentTheme.surface
-    val ButtonLabel get() = currentTheme.buttonLabel
-    val SettingsBackground get() = currentTheme.appBackground
+    // ── Dark-mode override palette ──────────────────────────────────────
+    private val DarkAppBackground   = Color(0xFF121212)
+    private val DarkSurface         = Color(0xFF1E1E1E)
+    private val DarkHeaderText      = Color(0xFFE0E0E0)
+    private val DarkSubText         = Color(0xFF9E9E9E)
+    private val DarkScoreBlock      = Color(0xFF2C2C2C)
+    private val DarkScoreLabel      = Color(0xFFBDBDBD)
+    // Mid-tone: must work both as a button fill (contrast with light label)
+    // and as accent/selected-text on the dark background.
+    private val DarkButtonBackground= Color(0xFF6B7280)
+    private val DarkButtonLabel     = Color(0xFFF3F4F6)
+    private val DarkTileEmpty       = Color(0xFF2A2A2A)
+    private val DarkBoardBackground = Color(0xFF3C3C3C)
+
+    // ── Light-mode defaults (from theme) ────────────────────────────────
+    val AppBackground   get() = if (darkMode) DarkAppBackground   else currentTheme.appBackground
+    val BoardBackground get() = if (darkMode) DarkBoardBackground else Color(0xFFBBADA0)
+    val HeaderText      get() = if (darkMode) DarkHeaderText      else currentTheme.headerText
+    val SubText         get() = if (darkMode) DarkSubText         else currentTheme.subText
+    val ButtonBackground get() = if (darkMode) DarkButtonBackground else currentTheme.buttonBackground
+    val ScoreBlockBackground get() = if (darkMode) DarkScoreBlock else currentTheme.scoreBlockBackground
+    val OverlayScrim    get() = if (darkMode) DarkAppBackground.copy(alpha = 0.88f)
+                                else currentTheme.appBackground.copy(alpha = 0.85f)
+    val TileEmpty       get() = if (darkMode) DarkTileEmpty       else currentTheme.tileEmpty
+    val TextDark        get() = if (darkMode) DarkHeaderText      else currentTheme.headerText
+    val TextLight       get() = Color(0xFFF9F6F2)
+    val ScoreLabel      get() = if (darkMode) DarkScoreLabel      else currentTheme.scoreLabel
+    val Surface         get() = if (darkMode) DarkSurface         else currentTheme.surface
+    val ButtonLabel     get() = if (darkMode) DarkButtonLabel     else currentTheme.buttonLabel
+    val SettingsBackground get() = AppBackground
 
     /** Tile accent colours that remain constant across all themes. */
     val Tile2 = Color(0xFFEEE4DA)
@@ -46,9 +69,10 @@ object GameColors {
     val Tile2048 = Color(0xFFEDC22E)
     val TileSuper = Color(0xFF3C3A32)
 
-    /** Apply a theme to the global colour palette. */
-    fun apply(theme: GameTheme) {
+    /** Apply a theme and dark-mode flag to the global colour palette. */
+    fun apply(theme: GameTheme, darkMode: Boolean = false) {
         currentTheme = theme
+        this.darkMode = darkMode
     }
 }
 
@@ -60,9 +84,10 @@ object GameColors {
 @Composable
 fun ProvideGameColors(darkMode: Boolean, themeId: String = "classic", content: @Composable () -> Unit) {
     val theme = GameTheme.byId(themeId)
-    SideEffect { GameColors.apply(theme) }
+    val isDark = darkMode || isSystemInDarkTheme()
+    SideEffect { GameColors.apply(theme, isDark) }
     CompositionLocalProvider(
-        LocalGameDark provides (darkMode || isSystemInDarkTheme()),
+        LocalGameDark provides isDark,
         LocalGameTheme provides theme
     ) {
         content()

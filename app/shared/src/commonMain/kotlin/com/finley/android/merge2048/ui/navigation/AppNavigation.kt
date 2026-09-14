@@ -2,6 +2,7 @@ package com.finley.android.merge2048.ui.navigation
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -50,8 +51,9 @@ fun AppNavigation(viewModel: GameViewModel) {
     val dailySeed = remember { DailyChallenge.seedAt(kotlin.time.Clock.System.now().toEpochMilliseconds()) }
 
     ProvideGameColors(darkMode = prefs.darkMode, themeId = prefs.themeId) {
+        val isDark = prefs.darkMode || isSystemInDarkTheme()
         LaunchedEffect(prefs.darkMode, prefs.themeId) {
-            GameColors.apply(GameTheme.byId(prefs.themeId))
+            GameColors.apply(GameTheme.byId(prefs.themeId), isDark)
         }
 
         Box(
