@@ -2,6 +2,7 @@ package com.finley.android.merge2048.ui.navigation
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -56,11 +57,18 @@ fun AppNavigation(viewModel: GameViewModel) {
             GameColors.apply(GameTheme.byId(prefs.themeId), isDark)
         }
 
+        // Root: paint the background edge-to-edge so it extends under the status
+        // and navigation bars. Content inside is padded by the system insets.
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .windowInsetsPadding(WindowInsets.safeDrawing)
+                .background(GameColors.AppBackground)
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .windowInsetsPadding(WindowInsets.safeDrawing)
+            ) {
             when (screen) {
                 is Screen.Game -> {
                     GameContent(
@@ -107,6 +115,7 @@ fun AppNavigation(viewModel: GameViewModel) {
                     viewModel.updatePreference { it.copy(hasSeenTutorial = true) }
                 }
             )
+            }
         }
     }
 }
