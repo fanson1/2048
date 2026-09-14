@@ -1,9 +1,5 @@
 package com.finley.android.merge2048.ui.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -40,6 +36,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import merge2048.app.shared.generated.resources.Res
 import merge2048.app.shared.generated.resources.access_open_history
 import merge2048.app.shared.generated.resources.access_open_settings
@@ -424,11 +422,9 @@ private fun BoardAndOverlays(
                 modifier = Modifier.fillMaxSize()
             )
 
-            AnimatedVisibility(
-                visible = showWin,
-                enter = fadeIn(tween(200)),
-                exit = fadeOut(tween(200))
-            ) {
+            // Win dialog with confetti behind it. Rendered as a modal Dialog so
+            // the rest of the screen (header buttons, etc.) is blocked.
+            if (showWin) {
                 GameOverlay(
                     title = stringResource(Res.string.dialog_win_title),
                     subtitle = stringResource(Res.string.dialog_win_subtitle),
@@ -459,39 +455,47 @@ private fun BoardAndOverlays(
                 boardSize = boardSize
             )
 
-            // Pause overlay
+            // Pause overlay. Rendered as a modal Dialog so the rest of the screen is blocked.
             if (isPaused && !isGameOver) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(GameColors.OverlayScrim)
-                        .clickable { onTogglePause() },
-                    contentAlignment = Alignment.Center
+                Dialog(
+                    onDismissRequest = onTogglePause,
+                    properties = DialogProperties(
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = false,
+                        usePlatformDefaultWidth = false
+                    )
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = stringResource(Res.string.pause_overlay_title),
-                            fontSize = 40.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = 6.sp,
-                            color = GameColors.HeaderText
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Button(
-                            onClick = onTogglePause,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = GameColors.ButtonBackground
-                            ),
-                            shape = RoundedCornerShape(14.dp),
-                            contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp)
-                        ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(GameColors.OverlayScrim),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
-                                text = stringResource(Res.string.pause_overlay_resume),
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                letterSpacing = 0.5.sp,
-                                color = GameColors.ButtonLabel
+                                text = stringResource(Res.string.pause_overlay_title),
+                                fontSize = 40.sp,
+                                fontWeight = FontWeight.Black,
+                                letterSpacing = 6.sp,
+                                color = GameColors.HeaderText
                             )
+                            Spacer(modifier = Modifier.height(20.dp))
+                            Button(
+                                onClick = onTogglePause,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = GameColors.ButtonBackground
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 40.dp, vertical = 12.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(Res.string.pause_overlay_resume),
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 0.5.sp,
+                                    color = GameColors.ButtonLabel
+                                )
+                            }
                         }
                     }
                 }

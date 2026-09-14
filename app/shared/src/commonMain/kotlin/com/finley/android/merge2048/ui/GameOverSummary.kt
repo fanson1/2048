@@ -1,11 +1,5 @@
 package com.finley.android.merge2048.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -29,6 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import merge2048.app.shared.generated.resources.Res
 import merge2048.app.shared.generated.resources.game_over_avg_merge_label
 import merge2048.app.shared.generated.resources.game_over_avg_merge_zero
@@ -58,13 +54,13 @@ import merge2048.app.shared.generated.resources.share_message_template
 import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.data.ShareService
 import com.finley.android.merge2048.ui.theme.formatScore
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 /**
- * Enhanced game-over summary modal showing detailed session stats.
- * Includes: score, max tile, moves, merges, average merge value,
- * and encouragement message based on performance.
+ * Enhanced game-over summary shown as a modal dialog. Blocks the game screen
+ * behind so no header/footer buttons are reachable until the player decides.
+ * Shows: score, max tile, moves, merges, average merge value, and an
+ * encouragement message based on performance.
  */
 @Composable
 fun GameOverSummary(
@@ -80,6 +76,7 @@ fun GameOverSummary(
     shareService: ShareService? = null,
     boardSize: Int = 4
 ) {
+    if (!visible) return
     var shareStatus by remember { mutableStateOf<String?>(null) }
     val shareMessage = stringResource(Res.string.share_message_template, score, boardSize)
     val copiedText = stringResource(Res.string.share_copied)
@@ -89,15 +86,17 @@ fun GameOverSummary(
         shareStatus = if (result != null) copiedText else null
     }
 
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(tween(300)) + scaleIn(initialScale = 0.9f, animationSpec = tween(300)),
-        exit = fadeOut(tween(200)) + scaleOut(targetScale = 0.9f, animationSpec = tween(200))
+    Dialog(
+        onDismissRequest = onNewGame,
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(16.dp))
                 .background(GameColors.OverlayScrim)
                 .padding(16.dp),
             contentAlignment = Alignment.Center

@@ -41,6 +41,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import merge2048.app.shared.generated.resources.Res
 import merge2048.app.shared.generated.resources.access_pause
 import merge2048.app.shared.generated.resources.access_resume
@@ -457,14 +459,21 @@ fun GameOverlay(
         stringResource(Res.string.placeholder_em_dash)
     else
         maxTile.toString()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .clip(RoundedCornerShape(16.dp))
-            .background(GameColors.OverlayScrim)
-            .padding(24.dp),
-        contentAlignment = Alignment.Center
+    Dialog(
+        onDismissRequest = onDismiss ?: {},
+        properties = DialogProperties(
+            dismissOnBackPress = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false
+        )
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(GameColors.OverlayScrim)
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
         Column(
             modifier = Modifier
                 .shadow(12.dp, RoundedCornerShape(20.dp))
@@ -568,6 +577,7 @@ fun GameOverlay(
                         color = GameColors.SubText.copy(alpha = 0.5f)
                     )
                 }
+            }
             }
         }
     }
