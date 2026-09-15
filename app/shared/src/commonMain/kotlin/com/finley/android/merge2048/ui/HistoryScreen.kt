@@ -203,7 +203,7 @@ fun HistoryScreen(
         if (stats.perBoardSize.isNotEmpty()) {
             Spacer(modifier = Modifier.height(20.dp))
             StatsCard(title = stringResource(Res.string.stats_card_by_board_size)) {
-                for ((size, s) in stats.perBoardSize.toSortedMap()) {
+                for ((size, s) in stats.perBoardSize.entries.sortedBy { it.key }) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
