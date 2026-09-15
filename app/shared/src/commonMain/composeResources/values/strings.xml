@@ -297,6 +297,15 @@
     <!-- ===== Challenge buttons ===== -->
     <string name="challenge_daily">Daily</string>
     <string name="challenge_timer">Timer</string>
+    <string name="mode_tag_daily">DAILY</string>
+    <string name="mode_tag_timer">TIMER</string>
+    <string name="daily_challenge_section_title">DAILY CHALLENGES</string>
+    <string name="daily_challenge_day_today">Today</string>
+    <string name="daily_challenge_day_yesterday">Yesterday</string>
+    <string name="daily_challenge_day_days_ago_format">%1$d days ago</string>
+    <string name="daily_challenge_row_summary_format">%1$d pts • max %2$d • %3$d moves</string>
+    <string name="daily_challenge_row_won_format">%1$d pts • max %2$d • %3$d moves • 🏆</string>
+    <string name="daily_challenge_empty_message">No daily challenges played yet.</string>
 
     <!-- ===== Mid-game restart confirmation ===== -->
     <string name="dialog_confirm_title">Start Over?</string>

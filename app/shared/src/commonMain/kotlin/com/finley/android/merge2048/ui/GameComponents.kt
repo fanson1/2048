@@ -308,7 +308,8 @@ fun PauseButton(
 
 @Composable
 fun DailyChallengeButton(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    completedToday: Boolean = false
 ) {
     Button(
         onClick = onClick,
@@ -323,7 +324,8 @@ fun DailyChallengeButton(
         )
     ) {
         Text(
-            text = stringResource(Res.string.challenge_daily),
+            text = if (completedToday) "✓ ${stringResource(Res.string.challenge_daily)}"
+            else stringResource(Res.string.challenge_daily),
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,

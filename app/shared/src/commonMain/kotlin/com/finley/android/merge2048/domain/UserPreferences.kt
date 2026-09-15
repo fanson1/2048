@@ -25,7 +25,9 @@ data class UserPreferences(
     val unlockedAchievementIds: Set<String> = emptySet(),
     val themeId: String = "classic",
     /** BCP 47 language tag. "system" defers to the OS locale. */
-    val language: String = "system"
+    val language: String = "system",
+    /** Per-day results of the daily challenge, keyed by day number (see [DailyChallenge]). */
+    val dailyChallengeResults: Map<Int, DailyChallengeResult> = emptyMap()
 ) {
     companion object {
         val Default = UserPreferences()

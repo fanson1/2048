@@ -10,13 +10,18 @@ package com.finley.android.merge2048.domain
  */
 class GameReducer(
     private val achievementEngine: AchievementEngine = AchievementEngine(),
-    private val onGameOver: (GameRecord) -> Unit = {}
+    private val onGameOver: (GameRecord) -> Unit = {},
+    private val onDailyChallengeFinished: (DailyChallengeResult) -> Unit = {}
 ) {
     private var engine: GameEngine = GameEngine()
     private var prefs: UserPreferences = UserPreferences.Default
     private var pendingAchievements: ArrayDeque<Achievement> = ArrayDeque()
     private var didUseUndoThisGame: Boolean = false
     private var winDialogShown: Boolean = false
+    /** The mode of the game currently being played (normal / daily / timed). */
+    private var currentMode: GameMode = GameMode.NORMAL
+    /** Day number of the active daily challenge (when [currentMode] is DAILY). */
+    private var currentDailyDay: Int = 0
     /**
      * Guards against writing more than one history record for the same game.
      * Set once a finished-game record is emitted; cleared whenever a fresh game
@@ -71,6 +76,8 @@ class GameReducer(
         winDialogShown = false
         recordEmittedForCurrentGame = false
         pendingAchievements.clear()
+        currentMode = GameMode.DAILY
+        currentDailyDay = DailyChallenge.dayFromSeed(seed)
         prefs = prefs.copy(gamesPlayed = prefs.gamesPlayed + 1)
         return emitState()
     }
@@ -83,6 +90,8 @@ class GameReducer(
         winDialogShown = false
         recordEmittedForCurrentGame = false
         pendingAchievements.clear()
+        currentMode = GameMode.NORMAL
+        currentDailyDay = 0
         val newGamesPlayed = prefs.gamesPlayed + 1
         prefs = prefs.copy(gamesPlayed = newGamesPlayed)
         return emitState()
@@ -96,6 +105,8 @@ class GameReducer(
         winDialogShown = false
         recordEmittedForCurrentGame = false
         pendingAchievements.clear()
+        currentMode = GameMode.TIMED
+        currentDailyDay = 0
         isTimedMode = true
         timedRemainingSeconds = durationSeconds
         timedDurationSeconds = durationSeconds
@@ -192,6 +203,8 @@ class GameReducer(
         winDialogShown = false
         recordEmittedForCurrentGame = false
         pendingAchievements.clear()
+        currentMode = GameMode.NORMAL
+        currentDailyDay = 0
 
         val newGamesPlayed = prefs.gamesPlayed + 1
         prefs = prefs.copy(gamesPlayed = newGamesPlayed)
@@ -225,6 +238,8 @@ class GameReducer(
         winDialogShown = intent.snapshot.hasWon // already shown, don't show again
         recordEmittedForCurrentGame = false
         pendingAchievements.clear()
+        currentMode = GameMode.NORMAL
+        currentDailyDay = 0
         return emitState().copy(moveCount = intent.snapshot.moveCount)
     }
 
@@ -324,9 +339,29 @@ return GameState(
             totalMerges = engine.totalMergesThisGame,
             won = engine.hasWon,
             didUndo = didUseUndoThisGame,
-            scoreOverTime = engine.scoreOverTime.takeLast(200)
+            scoreOverTime = engine.scoreOverTime.takeLast(200),
+            mode = currentMode
         )
         onGameOver(record)
+        if (currentMode == GameMode.DAILY) {
+            val result = DailyChallengeResult(
+                dayNumber = currentDailyDay,
+                finishedAtMs = record.finishedAtMs,
+                boardSize = record.boardSize,
+                score = record.score,
+                maxTile = record.maxTile,
+                moveCount = record.moveCount,
+                won = record.won
+            )
+            // Keep the best score ever achieved for that day's challenge.
+            val previous = prefs.dailyChallengeResults[currentDailyDay]
+            if (previous == null || result.score > previous.score) {
+                prefs = prefs.copy(
+                    dailyChallengeResults = prefs.dailyChallengeResults + (currentDailyDay to result)
+                )
+            }
+            onDailyChallengeFinished(result)
+        }
     }
 
     /** Wall-clock millis. Override in tests to make records deterministic. */

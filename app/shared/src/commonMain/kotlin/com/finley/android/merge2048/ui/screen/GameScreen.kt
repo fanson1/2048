@@ -95,7 +95,8 @@ fun GameScreen(
     onOpenSettings: () -> Unit = {},
     onOpenHistory: () -> Unit = {},
     onDismissAchievement: (String) -> Unit = {},
-    dailyChallengeSeed: Int = 0
+    dailyChallengeSeed: Int = 0,
+    todayDayNumber: Int = 0
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -105,7 +106,8 @@ fun GameScreen(
         onOpenSettings = onOpenSettings,
         onOpenHistory = onOpenHistory,
         onDismissAchievement = onDismissAchievement,
-        dailyChallengeSeed = dailyChallengeSeed
+        dailyChallengeSeed = dailyChallengeSeed,
+        todayDayNumber = todayDayNumber
     )
 }
 
@@ -116,7 +118,8 @@ internal fun GameContent(
     onOpenSettings: () -> Unit = {},
     onOpenHistory: () -> Unit = {},
     onDismissAchievement: (String) -> Unit = {},
-    dailyChallengeSeed: Int = 0
+    dailyChallengeSeed: Int = 0,
+    todayDayNumber: Int = 0
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -209,7 +212,8 @@ internal fun GameContent(
                         onClick = { onIntent(GameIntent.TogglePause) }
                     )
                     DailyChallengeButton(
-                        onClick = { confirmOrRun(GameIntent.StartDailyChallenge(seed = dailyChallengeSeed)) }
+                        onClick = { confirmOrRun(GameIntent.StartDailyChallenge(seed = dailyChallengeSeed)) },
+                        completedToday = state.user.dailyChallengeResults.containsKey(todayDayNumber)
                     )
                     TimedChallengeButton(
                         onClick = { confirmOrRun(GameIntent.StartTimedChallenge(durationSeconds = 60)) }

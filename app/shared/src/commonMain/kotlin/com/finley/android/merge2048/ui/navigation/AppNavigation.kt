@@ -79,7 +79,8 @@ fun AppNavigation(viewModel: GameViewModel) {
                         onDismissAchievement = { id ->
                             viewModel.onIntent(GameIntent.ConsumeAchievement(id))
                         },
-                        dailyChallengeSeed = dailySeed
+                        dailyChallengeSeed = dailySeed,
+                        todayDayNumber = DailyChallenge.dayFromSeed(dailySeed)
                     )
                 }
                 is Screen.Settings -> {
@@ -93,7 +94,9 @@ fun AppNavigation(viewModel: GameViewModel) {
                     HistoryScreen(
                         stats = LifetimeStats.from(records),
                         records = records,
-                        onBack = { screen = Screen.Game }
+                        onBack = { screen = Screen.Game },
+                        dailyResults = prefs.dailyChallengeResults,
+                        todayDayNumber = DailyChallenge.dayFromSeed(dailySeed)
                     )
                 }
             }

@@ -3,6 +3,13 @@ package com.finley.android.merge2048.domain
 import kotlinx.serialization.Serializable
 
 /**
+ * Distinguishes where a finished game came from.
+ * Used to tag history records and to keep a dedicated daily-challenge record.
+ */
+@Serializable
+enum class GameMode { NORMAL, DAILY, TIMED }
+
+/**
  * One finished game, persisted to local storage. Powers the history screen,
  * charts and lifetime statistics. The board itself is not stored — only the
  * summary metrics, plus an optional score-over-time curve for short games.
@@ -26,7 +33,9 @@ data class GameRecord(
     /** True if the player used Undo at any point. */
     val didUndo: Boolean,
     /** Score over time, sampled per move. Capped to ~200 points to keep storage small. */
-    val scoreOverTime: List<Int> = emptyList()
+    val scoreOverTime: List<Int> = emptyList(),
+    /** Where this game came from (normal / daily / timed). */
+    val mode: GameMode = GameMode.NORMAL
 ) {
     /** Best single move score in this game. */
     val bestMove: Int

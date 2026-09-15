@@ -49,7 +49,18 @@ import merge2048.app.shared.generated.resources.time_ago_hours_format
 import merge2048.app.shared.generated.resources.time_ago_minutes_format
 import merge2048.app.shared.generated.resources.time_ago_now
 import merge2048.app.shared.generated.resources.time_ago_weeks_format
+import merge2048.app.shared.generated.resources.daily_challenge_day_days_ago_format
+import merge2048.app.shared.generated.resources.daily_challenge_day_today
+import merge2048.app.shared.generated.resources.daily_challenge_day_yesterday
+import merge2048.app.shared.generated.resources.daily_challenge_empty_message
+import merge2048.app.shared.generated.resources.daily_challenge_row_summary_format
+import merge2048.app.shared.generated.resources.daily_challenge_row_won_format
+import merge2048.app.shared.generated.resources.daily_challenge_section_title
+import merge2048.app.shared.generated.resources.mode_tag_daily
+import merge2048.app.shared.generated.resources.mode_tag_timer
 import com.finley.android.merge2048.ui.theme.GameColors
+import com.finley.android.merge2048.domain.DailyChallengeResult
+import com.finley.android.merge2048.domain.GameMode
 import com.finley.android.merge2048.domain.GameRecord
 import com.finley.android.merge2048.domain.LifetimeStats
 import com.finley.android.merge2048.ui.theme.formatScore
@@ -63,7 +74,9 @@ import org.jetbrains.compose.resources.stringResource
 fun HistoryScreen(
     stats: LifetimeStats,
     records: List<GameRecord>,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    dailyResults: Map<Int, DailyChallengeResult> = emptyMap(),
+    todayDayNumber: Int = 0
 ) {
     val emDash = stringResource(Res.string.placeholder_em_dash)
     Column(
@@ -217,6 +230,37 @@ fun HistoryScreen(
             }
         }
 
+        // ---- Daily challenge records ----
+        if (dailyResults.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = stringResource(Res.string.daily_challenge_section_title),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp,
+                color = GameColors.SubText
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            StatsCard(title = "") {
+                val ordered = dailyResults.entries
+                    .sortedByDescending { it.key }
+                    .take(14)
+                for ((index, entry) in ordered.withIndex()) {
+                    if (index > 0) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(1.dp)
+                                .background(Color(0x22FFFFFF))
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    DailyChallengeRow(result = entry.value, todayDayNumber = todayDayNumber)
+                }
+            }
+        }
+
         // ---- Recent games list ----
         if (records.isNotEmpty()) {
             Spacer(modifier = Modifier.height(20.dp))
@@ -294,6 +338,39 @@ private fun StatBlock(
 }
 
 @Composable
+private fun ModeBadge(mode: GameMode) {
+    when (mode) {
+        GameMode.NORMAL -> return
+        GameMode.DAILY -> {
+            Text(
+                text = stringResource(Res.string.mode_tag_daily),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color(0xFF8B5CF6))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
+        }
+        GameMode.TIMED -> {
+            Text(
+                text = stringResource(Res.string.mode_tag_timer),
+                fontSize = 9.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(Color(0xFFE63B2E))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
 private fun LeaderboardRow(rank: Int, record: GameRecord) {
     val medalColor = when (rank) {
         1 -> Color(0xFFF2B705) // gold
@@ -336,11 +413,63 @@ private fun LeaderboardRow(rank: Int, record: GameRecord) {
                 color = GameColors.SubText
             )
         }
+        ModeBadge(mode = record.mode)
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = formatTimeAgo(record.finishedAtMs),
             fontSize = 11.sp,
             color = GameColors.SubText
         )
+    }
+}
+
+@Composable
+private fun DailyChallengeRow(result: DailyChallengeResult, todayDayNumber: Int) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = dayLabel(result.dayNumber, todayDayNumber),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold,
+                color = GameColors.HeaderText
+            )
+            Text(
+                text = if (result.won)
+                    stringResource(
+                        Res.string.daily_challenge_row_won_format,
+                        result.score,
+                        result.maxTile,
+                        result.moveCount
+                    )
+                else
+                    stringResource(
+                        Res.string.daily_challenge_row_summary_format,
+                        result.score,
+                        result.maxTile,
+                        result.moveCount
+                    ),
+                fontSize = 11.sp,
+                color = GameColors.SubText
+            )
+        }
+        Text(
+            text = formatTimeAgo(result.finishedAtMs),
+            fontSize = 11.sp,
+            color = GameColors.SubText
+        )
+    }
+}
+
+@Composable
+private fun dayLabel(dayNumber: Int, todayDayNumber: Int): String {
+    val diff = todayDayNumber - dayNumber
+    return when {
+        diff <= 0 -> stringResource(Res.string.daily_challenge_day_today)
+        diff == 1 -> stringResource(Res.string.daily_challenge_day_yesterday)
+        else -> stringResource(Res.string.daily_challenge_day_days_ago_format, diff)
     }
 }
 
@@ -378,6 +507,8 @@ private fun GameRecordRow(record: GameRecord) {
                 color = GameColors.SubText
             )
         }
+        ModeBadge(mode = record.mode)
+        Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = formatTimeAgo(record.finishedAtMs),
             fontSize = 11.sp,

@@ -297,6 +297,15 @@
     <!-- ===== Challenge buttons ===== -->
     <string name="challenge_daily">每日</string>
     <string name="challenge_timer">计时</string>
+    <string name="mode_tag_daily">每日</string>
+    <string name="mode_tag_timer">计时</string>
+    <string name="daily_challenge_section_title">每日挑战记录</string>
+    <string name="daily_challenge_day_today">今天</string>
+    <string name="daily_challenge_day_yesterday">昨天</string>
+    <string name="daily_challenge_day_days_ago_format">%1$d 天前</string>
+    <string name="daily_challenge_row_summary_format">%1$d 分 • 最大 %2$d • %3$d 步</string>
+    <string name="daily_challenge_row_won_format">%1$d 分 • 最大 %2$d • %3$d 步 • 🏆</string>
+    <string name="daily_challenge_empty_message">还没有玩过每日挑战。</string>
 
     <!-- ===== Mid-game restart confirmation ===== -->
     <string name="dialog_confirm_title">重新开始？</string>

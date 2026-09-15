@@ -19,9 +19,11 @@ A cross-platform **2048** puzzle game built with Kotlin Multiplatform + Compose 
 - Custom board sizes: **3x3**, **4x4**, **5x5**, **6x6**
 - **Undo** — step back one full move (`UNDO` button, only active when available)
 - Score + **Best score** tracking with per-board-size bests (persisted between sessions)
-- **Daily Challenge** — same seeded board for everyone every day
+- **Daily Challenge** — same seeded board for everyone every day, with a **dedicated per-day record** (highest score kept per day, shown on the history screen and via a ✓ on the Daily button once today's challenge is done)
+- **Timed Challenge** — 60-second score-attack mode
 - Win / game-over overlays with a full round summary (Score, Best, Max, Moves, Merges, Efficiency, Avg Merge) and motivational messages
 - Full keyboard support on desktop/web: **arrow keys / WASD** to move, **R** to restart
+- History records are tagged by mode (**Normal / Daily / Timer**) so every game's origin is visible
 
 **Localization**
 - **English** and **Simplified Chinese** (230 strings each, incl. game text, settings, achievements)
@@ -40,13 +42,16 @@ A cross-platform **2048** puzzle game built with Kotlin Multiplatform + Compose 
 - Goals and unlock requirements fully localized
 
 **History & stats**
-- Game history screen with **win rate**, lifetime aggregate stats, and a per-game **score sparkline**
+- Game history screen with **win rate**, lifetime aggregate stats, a per-game **score sparkline**, and a **DAILY CHALLENGES** card listing per-day results (Today / Yesterday / N days ago)
 
 **Visual & interaction polish**
 - Warm, classic 2048 color palette with premium gradients
+- **Edge-to-edge** background that extends under the status bar and navigation bar (no light gaps, even in dark mode), with system bar icons synced to the in-app theme
+- **Modal dialogs** for win / game-over / pause — full-screen scrim that blocks background buttons until dismissed
 - Tile pop-in + merge pop animations, direction-aware board slide animation
 - Floating score popups on merges, golden glow on high-value tiles (256+)
 - First-launch **tutorial overlay**, animated score cards
+- **Dark mode** toggle (with system-follow fallback); when enabled, every screen (game, settings, history) and their dialogs recolor instantly
 - Responsive layout: content capped at 480dp, auto-adapts to landscape/short screens (compact header, progressive UI degradation), board scales to fit available space without overflow
 
 **App icon**
@@ -64,13 +69,14 @@ com.finley.android.merge2048
 │   ├── GameIntent.kt       # user actions (sealed class)
 │   ├── GameEngine.kt       # game rules (board, moves, merges, undo, win/game-over)
 │   ├── GameReducer.kt      # ★ MVI heart: Intent → State reducer (owns best/win bookkeeping)
+│   ├── GameRecord.kt       # serializable per-game record (tagged by GameMode)
 │   ├── GameSnapshot.kt     # serializable per-game record payload
 │   ├── Achievement.kt      # achievement catalog (title/desc/emoji, localized)
 │   ├── AchievementEngine.kt# achievement detection & unlocking
-│   ├── DailyChallenge.kt   # date-seeded board generation
+│   ├── DailyChallenge.kt   # date-seeded board generation + per-day DailyChallengeResult
 │   ├── GameTheme.kt        # classic/dark/neon color themes + unlock rules
-│   ├── UserPreferences.kt  # persisted settings (incl. language tag)
-│   └── ...                 # GameRecord, TileMovement, LifetimeStats, AnimationLevel
+│   ├── UserPreferences.kt  # persisted settings (incl. language tag, daily results)
+│   └── ...                 # TileMovement, LifetimeStats, AnimationLevel
 ├── data/               # persistence & platform services (expect/actual)
 │   ├── SettingsRepository.kt   # JSON UserPreferences via multiplatform-settings
 │   ├── GameHistoryRepository.kt# serialized game records
@@ -78,7 +84,8 @@ com.finley.android.merge2048
 │   ├── PlatformSettings.kt     # initPlatformStorage / createSettings (expect/actual)
 │   ├── LocaleHelper.kt         # setAppLocale(tag) (expect/actual)
 │   ├── SoundService.kt         # sound effects (expect/actual)
-│   └── ShareService.kt         # share results (expect/actual)
+│   ├── ShareService.kt         # share results (expect/actual)
+│   └── SystemBars.kt           # sync system bar icons to in-app dark mode (expect/actual)
 ├── presentation/
 │   ├── GameViewModel.kt    # thin shell: holds StateFlow, forwards intents to the reducer
 │   └── GameViewModelFactory.kt # expect/actual ViewModel retrieval (Android real ViewModel, others construct directly)
@@ -88,7 +95,7 @@ com.finley.android.merge2048
 │   ├── screen/SwipeableGameBoard.kt# board grid + gesture/keyboard handling
 │   ├── theme/GameTheme.kt          # GameColors palette + font/score helpers
 │   ├── GameComponents.kt           # reusable design-system composables
-│   ├── GameOverSummary.kt          # win / game-over dialog & summaries
+│   ├── GameOverSummary.kt          # win / game-over modal dialogs & summaries
 │   ├── SettingsScreen.kt           # settings screen
 │   ├── HistoryScreen.kt            # history + stats
 │   ├── AchievementComponents.kt    # achievement wall / toasts
