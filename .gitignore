@@ -3,7 +3,6 @@
 # ==========================================
 .gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -20,6 +19,7 @@ build/
 *.tar.gz
 *.rar
 hs_err_pid*
+!gradle/wrapper/gradle-wrapper.jar
 
 # ==========================================
 # Android 特定
