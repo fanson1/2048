@@ -34,13 +34,12 @@ data class GameRecord(
     val didUndo: Boolean,
     /** Score over time, sampled per move. Capped to ~200 points to keep storage small. */
     val scoreOverTime: List<Int> = emptyList(),
+    /** Highest single-move score in this game. Tracked independently of [scoreOverTime],
+     *  which may be truncated — so it stays accurate even for very long games. */
+    val bestMove: Int = 0,
     /** Where this game came from (normal / daily / timed). */
     val mode: GameMode = GameMode.NORMAL
 ) {
-    /** Best single move score in this game. */
-    val bestMove: Int
-        get() = scoreOverTime.zipWithNext { a, b -> b - a }.maxOrNull() ?: 0
-
     /** Average points per move. */
     val avgPerMove: Double
         get() = if (moveCount == 0) 0.0 else score.toDouble() / moveCount

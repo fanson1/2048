@@ -59,58 +59,72 @@ A cross-platform **2048** puzzle game built with Kotlin Multiplatform + Compose 
 
 ## Architecture
 
-Strict layered MVI split into clean packages, with a pure-Kotlin domain core that is fully JVM-testable (zero Compose/Android deps):
+Strict layered MVI split into clean packages. Pure, cross-platform Kotlin domain types and
+algorithms live in the **core** module — a Compose-free library that both the app (`app/shared`)
+and the future online backend (`server`) share. The game engine and reducer layer run entirely on
+this pure core and are fully JVM-testable (zero Compose/Android deps):
 
 ```
 com.finley.android.merge2048
-├── domain/             # Pure Kotlin logic — zero Compose/Android deps, JVM-testable
-│   ├── Direction.kt        # move direction enum
-│   ├── GameState.kt        # immutable game snapshot
-│   ├── GameIntent.kt       # user actions (sealed class)
-│   ├── GameEngine.kt       # game rules (board, moves, merges, undo, win/game-over)
-│   ├── GameReducer.kt      # ★ MVI heart: Intent → State reducer (owns best/win bookkeeping)
-│   ├── GameRecord.kt       # serializable per-game record (tagged by GameMode)
-│   ├── GameSnapshot.kt     # serializable per-game record payload
-│   ├── Achievement.kt      # achievement catalog (title/desc/emoji, localized)
-│   ├── AchievementEngine.kt# achievement detection & unlocking
-│   ├── DailyChallenge.kt   # date-seeded board generation + per-day DailyChallengeResult
-│   ├── GameTheme.kt        # classic/dark/neon color themes + unlock rules
-│   ├── UserPreferences.kt  # persisted settings (incl. language tag, daily results)
-│   └── ...                 # TileMovement, LifetimeStats, AnimationLevel
-├── data/               # persistence & platform services (expect/actual)
-│   ├── SettingsRepository.kt   # JSON UserPreferences via multiplatform-settings
-│   ├── GameHistoryRepository.kt# serialized game records
-│   ├── GameRepository.kt
-│   ├── PlatformSettings.kt     # initPlatformStorage / createSettings (expect/actual)
-│   ├── LocaleHelper.kt         # setAppLocale(tag) (expect/actual)
-│   ├── SoundService.kt         # sound effects (expect/actual)
-│   ├── ShareService.kt         # share results (expect/actual)
-│   └── SystemBars.kt           # sync system bar icons to in-app dark mode (expect/actual)
-├── presentation/
-│   ├── GameViewModel.kt    # thin shell: holds StateFlow, forwards intents to the reducer
-│   └── GameViewModelFactory.kt # expect/actual ViewModel retrieval (Android real ViewModel, others construct directly)
-├── ui/
-│   ├── navigation/AppNavigation.kt # sealed-class navigation (Game / Settings / History)
-│   ├── screen/GameScreen.kt        # screen assembly layer (no business logic)
-│   ├── screen/SwipeableGameBoard.kt# board grid + gesture/keyboard handling
-│   ├── theme/GameTheme.kt          # GameColors palette + font/score helpers
-│   ├── GameComponents.kt           # reusable design-system composables
-│   ├── GameOverSummary.kt          # win / game-over modal dialogs & summaries
-│   ├── SettingsScreen.kt           # settings screen
-│   ├── HistoryScreen.kt            # history + stats
-│   ├── AchievementComponents.kt    # achievement wall / toasts
-│   ├── ConfettiCelebration.kt      # unlock celebration
-│   ├── FloatingScore.kt, SparkLine.kt, TileProgressBar.kt, TutorialOverlay.kt
-└── App.kt               # root composable: platform context + navigation wiring
+├── core/                # ★ Pure Kotlin domain library — zero Compose/Android deps, JVM-testable
+│   └── domain/          # shared by the app and the future server (online mode)
+│       ├── Direction.kt        # move direction enum
+│       ├── TileMovement.kt     # per-tile animation descriptors
+│       ├── GameState.kt        # immutable game snapshot
+│       ├── GameIntent.kt       # user actions (sealed class)
+│       ├── GameRecord.kt       # serializable per-game record (tagged by GameMode)
+│       ├── GameSnapshot.kt     # serializable in-progress save payload
+│       ├── DailyChallenge.kt   # date-seeded board generation + per-day DailyChallengeResult
+│       ├── LifetimeStats.kt    # record aggregation for stats / leaderboards
+│       └── UserPreferences.kt  # persisted settings (incl. language tag, daily results)
+└── app/
+    └── shared/src/commonMain/kotlin/com/finley/android/merge2048/
+        ├── domain/             # engine + app-specific rules (depends on core)
+        │   ├── GameEngine.kt       # game rules (board, moves, merges, undo, win/game-over)
+        │   ├── GameReducer.kt      # ★ MVI heart: Intent → State reducer (owns best/win bookkeeping)
+        │   ├── Achievement.kt      # achievement catalog (title/desc/emoji, localized)
+        │   ├── AchievementEngine.kt# achievement detection & unlocking
+        │   └── GameTheme.kt        # classic/dark/neon color themes + unlock rules
+        ├── data/               # persistence & platform services (expect/actual)
+        │   ├── SettingsRepository.kt   # JSON UserPreferences via multiplatform-settings
+        │   ├── GameHistoryRepository.kt# serialized game records
+        │   ├── GameRepository.kt
+        │   ├── PlatformSettings.kt     # initPlatformStorage / createSettings (expect/actual)
+        │   ├── LocaleHelper.kt         # setAppLocale(tag) (expect/actual)
+        │   ├── SoundService.kt         # sound effects (expect/actual)
+        │   ├── ShareService.kt         # share results (expect/actual)
+        │   └── SystemBars.kt           # sync system bar icons to in-app dark mode (expect/actual)
+        ├── presentation/
+        │   ├── GameViewModel.kt    # thin shell: holds StateFlow, forwards intents to the reducer
+        │   └── GameViewModelFactory.kt # expect/actual ViewModel retrieval (Android real ViewModel, others construct directly)
+        └── ui/
+            ├── navigation/AppNavigation.kt # sealed-class navigation (Game / Settings / History)
+            ├── screen/GameScreen.kt        # screen assembly layer (no business logic)
+            ├── screen/SwipeableGameBoard.kt# board grid + gesture/keyboard handling
+            ├── theme/GameTheme.kt          # GameColors palette + font/score helpers
+            ├── GameComponents.kt           # reusable design-system composables
+            ├── GameOverSummary.kt          # win / game-over modal dialogs & summaries
+            ├── SettingsScreen.kt           # settings screen
+            ├── HistoryScreen.kt            # history + stats
+            ├── AchievementComponents.kt    # achievement wall / toasts
+            ├── ConfettiCelebration.kt      # unlock celebration
+            ├── FloatingScore.kt, SparkLine.kt, TileProgressBar.kt, TutorialOverlay.kt
+            └── App.kt               # root composable: platform context + navigation wiring
 ```
 
 ### Why a reducer?
 
 All game behavior (move scoring, best-score tracking, win-dialog gating, achievement detection,
-undo bookkeeping, state derivation) lives in the pure `domain/GameReducer` (plus
-`AchievementEngine`). The `GameViewModel` becomes a passive shell, and every state
-transition is unit-tested on the JVM from `commonTest` without Android or Compose
-dependencies.
+undo bookkeeping, state derivation) lives in the pure `GameReducer` (plus `AchievementEngine`).
+The `GameViewModel` becomes a passive shell, and every state transition is unit-tested on the
+JVM from `commonTest` without Android or Compose dependencies.
+
+### The server module (planned online mode)
+
+`server/` is currently a minimal Ktor scaffold. The intended use is an *online mode* on top of the
+shared `core/domain` types: uploading/aggregating `GameRecord`s into leaderboards, validating daily-
+challenge results via `DailyChallenge.dayFromSeed`, and powering cross-device sync — all reusing the
+exact same serialized models as the app, so the two sides stay in lockstep.
 
 ## Persistence & platform services
 
@@ -148,6 +162,13 @@ dependencies.
 - Web: `./gradlew :app:shared:jsTest` / `./gradlew :app:shared:wasmJsTest`
 - iOS: `./gradlew :app:shared:iosSimulatorArm64Test`
 - Server: `./gradlew :server:test`
+
+## Dependency version notes
+
+| Dependency | Version | Rationale |
+|---|---|---|
+| `org.jetbrains.compose.material3` | **1.9.0** (stable) | Latest stable release. Versioning is decoupled from the Compose Multiplatform plugin; `1.11.0-alpha07` and similar alphas are pre-release tracks. The project only uses basic Material3 APIs (Button, Text, TextButton, ButtonDefaults) so no alpha features are needed. |
+| `org.jetbrains.androidx.lifecycle` | **2.10.0** (stable) | The next stable release (`2.11.0`) requires AGP ≥ 9.1.0 and compileSdk ≥ 37, which this project's current toolchain does not yet support. `2.10.0` is the latest stable compatible with AGP 9.0.x / compileSdk 36. Upgrade AGP + compileSdk before adopting `2.11.0` stable. |
 
 ---
 

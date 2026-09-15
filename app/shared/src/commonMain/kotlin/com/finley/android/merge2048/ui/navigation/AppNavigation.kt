@@ -49,7 +49,21 @@ fun AppNavigation(viewModel: GameViewModel) {
     val prefs by viewModel.preferences.collectAsState()
     val records by viewModel.history.collectAsState()
     var screen by remember { mutableStateOf<Screen>(Screen.Game) }
-    val dailySeed = remember { DailyChallenge.seedAt(kotlin.time.Clock.System.now().toEpochMilliseconds()) }
+
+    // Daily challenge day number, kept fresh across midnight rollovers. A tiny
+    // background tick (every minute) is cheap and guarantees the challenge and
+    // the "today" label roll over even if the app stays open past midnight.
+    var todayDayNumber by remember {
+        mutableStateOf(DailyChallenge.dayNumberAt(kotlin.time.Clock.System.now().toEpochMilliseconds()))
+    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            kotlinx.coroutines.delay(60_000)
+            val day = DailyChallenge.dayNumberAt(kotlin.time.Clock.System.now().toEpochMilliseconds())
+            if (day != todayDayNumber) todayDayNumber = day
+        }
+    }
+    val dailySeed = remember(todayDayNumber) { todayDayNumber * DailyChallenge.SEED_MULTIPLIER + 1 }
 
     ProvideGameColors(darkMode = prefs.darkMode, themeId = prefs.themeId) {
         val isDark = prefs.darkMode || isSystemInDarkTheme()
@@ -80,7 +94,7 @@ fun AppNavigation(viewModel: GameViewModel) {
                             viewModel.onIntent(GameIntent.ConsumeAchievement(id))
                         },
                         dailyChallengeSeed = dailySeed,
-                        todayDayNumber = DailyChallenge.dayFromSeed(dailySeed)
+                        todayDayNumber = todayDayNumber
                     )
                 }
                 is Screen.Settings -> {
@@ -96,7 +110,7 @@ fun AppNavigation(viewModel: GameViewModel) {
                         records = records,
                         onBack = { screen = Screen.Game },
                         dailyResults = prefs.dailyChallengeResults,
-                        todayDayNumber = DailyChallenge.dayFromSeed(dailySeed)
+                        todayDayNumber = todayDayNumber
                     )
                 }
             }

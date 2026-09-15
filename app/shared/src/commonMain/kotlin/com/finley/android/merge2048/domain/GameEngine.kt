@@ -25,6 +25,10 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
     var lastMoveScore: Int = 0
         private set
 
+    /** Highest single-move score earned across the whole current game. */
+    var bestMoveThisGame: Int = 0
+        private set
+
     /** Number of merges performed in the most recent move. */
     var lastMoveMergeCount: Int = 0
         private set
@@ -111,6 +115,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         board = Array(boardSize) { IntArray(boardSize) }
         score = 0
         lastMoveScore = 0
+        bestMoveThisGame = 0
         lastMoveMergeCount = 0
         totalMergesThisGame = 0
         comboCount = 0
@@ -209,6 +214,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
             // This is the authoritative base points; combo multiplier is applied by the
             // reducer at display time only — never mutated here.
             lastMoveScore = score - previousScore
+            if (lastMoveScore > bestMoveThisGame) bestMoveThisGame = lastMoveScore
 
             // Update combo: if merges happened, increment; otherwise reset
             if (lastMoveMergeCount > 0) {
@@ -350,7 +356,11 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         return board.map { it.toList() }
     }
 
-    internal fun setBoardForTesting(values: List<List<Int>>, restoredScore: Int = 0) {
+    /**
+     * Restore a previously-saved board and score (used on app relaunch to resume an
+     * in-progress game) or to set up a board for tests. Resets all derived state.
+     */
+    fun restore(values: List<List<Int>>, restoredScore: Int = 0) {
         require(values.size == boardSize && values.all { it.size == boardSize }) {
             "Test board must be ${boardSize}x${boardSize}"
         }
@@ -361,6 +371,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         }
         score = restoredScore
         lastMoveScore = 0
+        bestMoveThisGame = 0
         lastMoveMergeCount = 0
         totalMergesThisGame = 0
         comboCount = 0
@@ -489,10 +500,6 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
                 processLine(line) { index -> Pair(size - 1 - index, c) }
             }
         }
-
-        // Remove Stayed entries for positions that were claimed by Merged/Slid,
-        // so that the find() lookup in AnimatedTile returns the correct movement.
-        movements.removeAll { it is TileMovement.Stayed && claimed.contains(Pair(it.row, it.col)) }
 
         // --- Phase 2: Spawned tiles (tiles that came out of nowhere) ---
         for (r in 0 until size) {

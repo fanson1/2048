@@ -36,8 +36,7 @@ class GameViewModel(
 ) : ViewModel() {
 
     private val reducer = com.finley.android.merge2048.domain.GameReducer(
-        onGameOver = { record -> historyRepository.append(record) },
-        onDailyChallengeFinished = { _ -> /* persisted via prefs; reserved for future UI */ }
+        onGameOver = { record -> historyRepository.append(record) }
     )
     private val _state: MutableStateFlow<GameState> by lazy { MutableStateFlow(initialState()) }
     val state: StateFlow<GameState> by lazy { _state.asStateFlow() }

@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Full multi-platform build matrix. Runs the JVM unit tests and compiles
+  # every target so a regression on one platform never ships silently.
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Cache Kotlin/Native compiler
+        uses: actions/cache@v4
+        with:
+          path: ~/.konan
+          key: ${{ runner.os }}-konan
+
+      - name: Run JVM unit tests
+        run: ./gradlew :app:shared:jvmTest --no-daemon
+
+      - name: Build Android debug APK
+        run: ./gradlew :app:androidApp:assembleDebug --no-daemon
+
+      - name: Compile desktop (JVM)
+        run: ./gradlew :app:desktopApp:compileKotlin --no-daemon
+
+      - name: Compile JS + Wasm targets
+        run: ./gradlew :app:shared:compileKotlinJs :app:shared:compileKotlinWasmJs --no-daemon
+
+      - name: Compile iOS frameworks
+        run: ./gradlew :app:shared:compileKotlinIosArm64 :app:shared:compileKotlinIosSimulatorArm64 --no-daemon
+
+      - name: Compile metadata
+        run: ./gradlew :app:shared:compileKotlinMetadata :core:compileKotlinMetadata --no-daemon
+
+      - name: Upload JUnit report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jvm-test-report
+          path: app/shared/build/reports/tests/
+          if-no-files-found: ignore

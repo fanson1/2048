@@ -4,6 +4,7 @@ import com.finley.android.merge2048.domain.Direction
 import com.finley.android.merge2048.domain.GameEngine
 import com.finley.android.merge2048.domain.TileMovement
 import kotlin.test.Test
+import kotlin.test.assertTrue
 import kotlin.test.fail
 
 /**
@@ -23,7 +24,7 @@ class MovementMatchingDiagnosisTest {
 
     private fun checkBoard(before: List<List<Int>>, direction: Direction) {
         val engine = GameEngine(boardSize = 3, seed = 42)
-        engine.setBoardForTesting(before)
+        engine.restore(before)
         val beforeCopy = engine.getBoard()
 
         val moved = engine.move(direction)
@@ -141,7 +142,7 @@ class MovementMatchingDiagnosisTest {
                 count++
             }
         }
-        // reached here = no failures
-        println("Checked $count before-state/direction combinations OK")
+        // reached here = no failures across all $count combinations
+        assertTrue(count > 0)
     }
 }

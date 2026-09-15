@@ -19,7 +19,7 @@ class SharedCommonTest {
     fun `detects game over when board is full with no merges`() {
         val engine = GameEngine()
         // A board with no empty cells and no adjacent equal tiles
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 4, 2, 4),
                 listOf(4, 2, 4, 2),
@@ -38,7 +38,7 @@ class SharedCommonTest {
     @Test
     fun `game is not over when a move is possible`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 2, 0, 0),
                 listOf(0, 0, 0, 0),
@@ -56,7 +56,7 @@ class SharedCommonTest {
     @Test
     fun `moving right aligns tiles to the right edge`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 0, 0, 0),
                 listOf(0, 0, 0, 0),
@@ -74,7 +74,7 @@ class SharedCommonTest {
     @Test
     fun `moving right merges at the right edge`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 2, 0, 0),
                 listOf(0, 0, 0, 0),
@@ -92,7 +92,7 @@ class SharedCommonTest {
     @Test
     fun `moving down aligns tiles to the bottom edge`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 0, 0, 0),
                 listOf(0, 0, 0, 0),
@@ -110,7 +110,7 @@ class SharedCommonTest {
     @Test
     fun `moving down merges at the bottom edge`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 0, 0, 0),
                 listOf(2, 0, 0, 0),
@@ -128,7 +128,7 @@ class SharedCommonTest {
     @Test
     fun `undo restores previous board and score`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 2, 0, 0),
                 listOf(0, 0, 0, 0),
@@ -157,7 +157,7 @@ class SharedCommonTest {
     @Test
     fun `maxTile reports the largest tile on the board`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 8, 4, 2),
                 listOf(16, 0, 0, 0),
@@ -171,7 +171,7 @@ class SharedCommonTest {
     @Test
     fun `moveCount increments on valid moves and resets on new game`() {
         val engine = GameEngine()
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 2, 0, 0),
                 listOf(0, 0, 0, 0),
@@ -185,7 +185,7 @@ class SharedCommonTest {
         assertEquals(1, engine.moveCount)
 
         // Reset to a no-op board: invalid moves don't count
-        engine.setBoardForTesting(
+        engine.restore(
             listOf(
                 listOf(2, 4, 2, 4),
                 listOf(4, 2, 4, 2),

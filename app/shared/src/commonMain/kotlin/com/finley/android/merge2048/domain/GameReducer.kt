@@ -10,8 +10,7 @@ package com.finley.android.merge2048.domain
  */
 class GameReducer(
     private val achievementEngine: AchievementEngine = AchievementEngine(),
-    private val onGameOver: (GameRecord) -> Unit = {},
-    private val onDailyChallengeFinished: (DailyChallengeResult) -> Unit = {}
+    private val onGameOver: (GameRecord) -> Unit = {}
 ) {
     private var engine: GameEngine = GameEngine()
     private var prefs: UserPreferences = UserPreferences.Default
@@ -232,7 +231,7 @@ class GameReducer(
     private fun handleRestore(intent: GameIntent.RestoreGame): GameState {
         prefs = intent.prefs
         engine = GameEngine(boardSize = intent.snapshot.boardSize)
-        engine.setBoardForTesting(intent.snapshot.board, restoredScore = intent.snapshot.score)
+        engine.restore(intent.snapshot.board, restoredScore = intent.snapshot.score)
         sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
         didUseUndoThisGame = false
         winDialogShown = intent.snapshot.hasWon // already shown, don't show again
@@ -317,7 +316,7 @@ return GameState(
     }
 
     internal fun seedBoardForTesting(values: List<List<Int>>) {
-        engine.setBoardForTesting(values)
+        engine.restore(values)
     }
 
     /**
@@ -340,10 +339,14 @@ return GameState(
             won = engine.hasWon,
             didUndo = didUseUndoThisGame,
             scoreOverTime = engine.scoreOverTime.takeLast(200),
+            bestMove = engine.bestMoveThisGame,
             mode = currentMode
         )
         onGameOver(record)
         if (currentMode == GameMode.DAILY) {
+            // Persist a dedicated per-day record, keeping only the best score
+            // ever achieved for that day's challenge. HistoryScreen reads this
+            // straight from UserPreferences.
             val result = DailyChallengeResult(
                 dayNumber = currentDailyDay,
                 finishedAtMs = record.finishedAtMs,
@@ -353,14 +356,12 @@ return GameState(
                 moveCount = record.moveCount,
                 won = record.won
             )
-            // Keep the best score ever achieved for that day's challenge.
             val previous = prefs.dailyChallengeResults[currentDailyDay]
             if (previous == null || result.score > previous.score) {
                 prefs = prefs.copy(
                     dailyChallengeResults = prefs.dailyChallengeResults + (currentDailyDay to result)
                 )
             }
-            onDailyChallengeFinished(result)
         }
     }
 
