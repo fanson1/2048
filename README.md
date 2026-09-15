@@ -12,6 +12,32 @@ A cross-platform **2048** puzzle game built with Kotlin Multiplatform + Compose 
 | Web (Wasm + JS) | ✅ |
 | Server (Ktor) | ✅ |
 
+## Screenshots
+
+<p align="center">
+  <img src="screenshots/01-onboarding.png" width="220" alt="First-launch tutorial"/>
+  <img src="screenshots/02-gameplay.png" width="220" alt="Classic gameplay"/>
+  <img src="screenshots/04-dark-mode.png" width="220" alt="Dark mode"/>
+  <br/>
+  <small>First-launch tutorial · Classic gameplay · Dark mode</small>
+</p>
+
+<p align="center">
+  <img src="screenshots/03-settings.png" width="220" alt="Settings"/>
+  <img src="screenshots/06-history.png" width="220" alt="History & stats"/>
+  <img src="screenshots/07-daily-challenge.png" width="220" alt="Daily challenge"/>
+  <br/>
+  <small>Settings · History & stats · Daily challenge</small>
+</p>
+
+<p align="center">
+  <img src="screenshots/05-pause.png" width="220" alt="Pause dialog"/>
+  <img src="screenshots/08-confirm-restart.png" width="220" alt="Restart confirmation"/>
+  <img src="screenshots/09-game-over.png" width="220" alt="Game-over summary"/>
+  <br/>
+  <small>Pause dialog · Restart confirmation · Game-over summary</small>
+</p>
+
 ## Features
 
 **Gameplay**
