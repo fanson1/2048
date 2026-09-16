@@ -17,10 +17,7 @@ class GameReducer(
     private var pendingAchievements: ArrayDeque<Achievement> = ArrayDeque()
     private var didUseUndoThisGame: Boolean = false
     private var winDialogShown: Boolean = false
-    /** The mode of the game currently being played (normal / daily / timed). */
-    private var currentMode: GameMode = GameMode.NORMAL
-    /** Day number of the active daily challenge (when [currentMode] is DAILY). */
-    private var currentDailyDay: Int = 0
+
     /**
      * Guards against writing more than one history record for the same game.
      * Set once a finished-game record is emitted; cleared whenever a fresh game
@@ -28,6 +25,7 @@ class GameReducer(
      * undo, so a player who dies, undoes, and dies again is only recorded once.
      */
     private var recordEmittedForCurrentGame: Boolean = false
+
     /**
      * Best score at the moment the current game started. Used by the UI to decide
      * whether the running score is a genuine new record (score > this), instead of
@@ -35,11 +33,40 @@ class GameReducer(
      */
     private var sessionBestAtStart: Int = 0
 
-    // Timed challenge state
-    private var isTimedMode: Boolean = false
-    private var timedRemainingSeconds: Int = 0
-    private var timedDurationSeconds: Int = 0
-    private var timedBestScore: Int = 0
+    /**
+     * Everything that describes the round currently in play — its [GameMode], the
+     * active daily-challenge day and an optional [TimedClock]. Grouped into a single
+     * value object so round bookkeeping is one concept instead of a handful of loose
+     * fields scattered through the reducer.
+     */
+    private var session: GameSession = GameSession()
+
+    /** Mutable countdown for the timed challenge; mutated per tick, never replaced. */
+    private class TimedClock(durationSeconds: Int) {
+        var remainingSeconds: Int = durationSeconds
+        var durationSeconds: Int = durationSeconds
+        var bestScore: Int = 0
+            private set
+
+        val isExpired: Boolean get() = remainingSeconds <= 0
+
+        /** Folds the current score into [bestScore] and returns true when time ran out. */
+        fun tick(currentScore: Int): Boolean {
+            remainingSeconds--
+            if (currentScore > bestScore) bestScore = currentScore
+            return isExpired
+        }
+    }
+
+    /** Immutable description of the round in play. The [timed] clock is the one
+     *  mutable part and only exists while a timed challenge is running. */
+    private data class GameSession(
+        val mode: GameMode = GameMode.NORMAL,
+        val dayNumber: Int = 0,
+        val timed: TimedClock? = null
+    ) {
+        val isTimed: Boolean get() = timed != null
+    }
 
     fun reduce(previous: GameState, intent: GameIntent): GameState {
         return when (intent) {
@@ -62,6 +89,23 @@ class GameReducer(
     }
 
     /**
+     * Template method shared by every "a fresh round starts" path (new game,
+     * board-size change, daily & timed challenges, restore). It resets the
+     * per-round bookkeeping and records home much the player had before the
+     * round began, so the new-record flash never fires on the board's first move.
+     * Concrete paths call it after setting up [engine] and pass the mode they
+     * enter (see [GameSession]).
+     */
+    private fun beginRound(mode: GameMode, dayNumber: Int = 0, timed: TimedClock? = null) {
+        didUseUndoThisGame = false
+        winDialogShown = false
+        recordEmittedForCurrentGame = false
+        pendingAchievements.clear()
+        session = GameSession(mode = mode, dayNumber = dayNumber, timed = timed)
+        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
+    }
+
+    /**
      * Compute a deterministic seed from today's date so all players get the same board.
      * Platform layer should call this to get today's seed:
      *   val epoch2024 = 1704067200000L
@@ -70,70 +114,43 @@ class GameReducer(
      */
     private fun handleDailyChallenge(boardSize: Int, seed: Int): GameState {
         engine = GameEngine(boardSize = boardSize, seed = seed)
-        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
-        didUseUndoThisGame = false
-        winDialogShown = false
-        recordEmittedForCurrentGame = false
-        pendingAchievements.clear()
-        currentMode = GameMode.DAILY
-        currentDailyDay = DailyChallenge.dayFromSeed(seed)
-        prefs = prefs.copy(gamesPlayed = prefs.gamesPlayed + 1)
+        beginRound(GameMode.DAILY, dayNumber = DailyChallenge.dayFromSeed(seed))
+        recordGameStarted()
         return emitState()
     }
 
     private fun handleChangeBoardSize(boardSize: Int): GameState {
         prefs = prefs.copy(boardSize = boardSize)
         engine = GameEngine(boardSize = boardSize)
-        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
-        didUseUndoThisGame = false
-        winDialogShown = false
-        recordEmittedForCurrentGame = false
-        pendingAchievements.clear()
-        currentMode = GameMode.NORMAL
-        currentDailyDay = 0
-        val newGamesPlayed = prefs.gamesPlayed + 1
-        prefs = prefs.copy(gamesPlayed = newGamesPlayed)
+        beginRound(GameMode.NORMAL)
+        recordGameStarted()
         return emitState()
     }
 
     private fun handleTimedChallenge(boardSize: Int, durationSeconds: Int): GameState {
         prefs = prefs.copy(boardSize = boardSize)
         engine = GameEngine(boardSize = boardSize)
-        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
-        didUseUndoThisGame = false
-        winDialogShown = false
-        recordEmittedForCurrentGame = false
-        pendingAchievements.clear()
-        currentMode = GameMode.TIMED
-        currentDailyDay = 0
-        isTimedMode = true
-        timedRemainingSeconds = durationSeconds
-        timedDurationSeconds = durationSeconds
-        timedBestScore = 0
+        beginRound(GameMode.TIMED, timed = TimedClock(durationSeconds))
         return emitState()
     }
 
     private fun handleTimerTick(): GameState {
-        if (!isTimedMode || timedRemainingSeconds <= 0) return emitState()
-        timedRemainingSeconds--
-        // Track best score during timed mode
-        if (engine.score > timedBestScore) {
-            timedBestScore = engine.score
+        val clock = session.timed ?: return emitState()
+        if (clock.isExpired) return emitState()
+        return if (clock.tick(engine.score)) {
+            handleTimerExpired()
+        } else {
+            emitState()
         }
-        if (timedRemainingSeconds <= 0) {
-            return handleTimerExpired()
-        }
-        return emitState()
     }
 
     private fun handleTimerExpired(): GameState {
-        isTimedMode = false
-        timedRemainingSeconds = 0
+        if (session.isTimed) session = session.copy(timed = null)
         // A finished timed session counts as a played game and writes a history
         // record, but only if the board isn't already game-over (that path is
         // recorded by handleMove and must not be double-counted here).
         if (!engine.isGameOver && !recordEmittedForCurrentGame) {
-            prefs = prefs.copy(gamesPlayed = prefs.gamesPlayed + 1)
+            recordGameStarted()
             emitGameOverRecord()
             recordEmittedForCurrentGame = true
         }
@@ -197,29 +214,34 @@ class GameReducer(
 
     private fun handleNewGame(): GameState {
         engine = GameEngine(boardSize = prefs.boardSize)
-        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
-        didUseUndoThisGame = false
-        winDialogShown = false
-        recordEmittedForCurrentGame = false
-        pendingAchievements.clear()
-        currentMode = GameMode.NORMAL
-        currentDailyDay = 0
+        beginRound(GameMode.NORMAL)
+        recordGameStarted()
+        return emitState()
+    }
 
+    /**
+     * Every started (or, for timed mode, finished) round counts as a played game.
+     * This single helper increments the lifetime counter **and** re-evaluates the
+     * session-scoped achievements in the same step, so "play N games" unlocks at
+     * the exact round that crosses the threshold — regardless of whether that round
+     * was a normal game, a daily challenge, a board-size change, or a timed run.
+     * (Previously only [handleNewGame] ran the evaluation, so achievements could be
+     * silently postponed until the next normal new game.)
+     */
+    private fun recordGameStarted() {
         val newGamesPlayed = prefs.gamesPlayed + 1
         prefs = prefs.copy(gamesPlayed = newGamesPlayed)
 
-        val session = GameSessionContext(gamesPlayed = newGamesPlayed)
         val newly = achievementEngine.evaluate(
             alreadyUnlocked = prefs.unlockedAchievementIds,
             move = null,
-            session = session,
+            session = GameSessionContext(gamesPlayed = newGamesPlayed),
             winContext = null
         )
         if (newly.isNotEmpty()) {
             pendingAchievements.addAll(newly)
             prefs = prefs.copy(unlockedAchievementIds = prefs.unlockedAchievementIds + newly.map { it.id })
         }
-        return emitState()
     }
 
     private fun handleUndo(previous: GameState): GameState {
@@ -232,13 +254,9 @@ class GameReducer(
         prefs = intent.prefs
         engine = GameEngine(boardSize = intent.snapshot.boardSize)
         engine.restore(intent.snapshot.board, restoredScore = intent.snapshot.score)
-        sessionBestAtStart = prefs.bestScoreByBoardSize[engine.boardSize] ?: prefs.bestScore
-        didUseUndoThisGame = false
-        winDialogShown = intent.snapshot.hasWon // already shown, don't show again
-        recordEmittedForCurrentGame = false
-        pendingAchievements.clear()
-        currentMode = GameMode.NORMAL
-        currentDailyDay = 0
+        beginRound(GameMode.NORMAL)
+        // The win dialog was already shown when the player quit — don't show it again.
+        winDialogShown = intent.snapshot.hasWon
         return emitState().copy(moveCount = intent.snapshot.moveCount)
     }
 
@@ -281,38 +299,35 @@ class GameReducer(
         val shouldShowWin = engine.hasWon && !winDialogShown
         if (shouldShowWin) winDialogShown = true
 
-        val comboBonus = computeComboBonus()
-        val displayedScore = engine.score + comboBonus
-
-return GameState(
-                board = engine.getBoard(),
-                score = engine.score,
-                bestScore = prefs.bestScore,
-                bestScoreByBoardSize = prefs.bestScoreByBoardSize,
-                isGameOver = engine.isGameOver,
-                hasWon = engine.hasWon,
-                showWinDialog = shouldShowWin,
-                maxTile = engine.maxTile,
-                bestMaxTile = prefs.bestMaxTile,
-                bestMaxTileByBoardSize = prefs.bestMaxTileByBoardSize,
-                canUndo = engine.canUndo,
-                undoCount = engine.undoCount,
-                moveCount = engine.moveCount,
-                boardSize = engine.boardSize,
-                user = prefs,
-                pendingAchievementId = pendingAchievements.firstOrNull()?.id,
-                lastMergePoints = engine.lastMoveScore,
-                comboCount = engine.comboCount,
-                comboMultiplier = engine.comboMultiplier,
-                lastMergePositions = engine.lastMergePositions,
-                totalMerges = engine.totalMergesThisGame,
-                moveAnimationData = engine.lastMoveAnimationData,
-                isTimedMode = isTimedMode,
-                timedRemainingSeconds = timedRemainingSeconds,
-                timedDurationSeconds = timedDurationSeconds,
-                timedBestScore = timedBestScore,
-                bestAtSessionStart = sessionBestAtStart
-            )
+        return GameState(
+            board = engine.getBoard(),
+            score = engine.score,
+            bestScore = prefs.bestScore,
+            bestScoreByBoardSize = prefs.bestScoreByBoardSize,
+            isGameOver = engine.isGameOver,
+            hasWon = engine.hasWon,
+            showWinDialog = shouldShowWin,
+            maxTile = engine.maxTile,
+            bestMaxTile = prefs.bestMaxTile,
+            bestMaxTileByBoardSize = prefs.bestMaxTileByBoardSize,
+            canUndo = engine.canUndo,
+            undoCount = engine.undoCount,
+            moveCount = engine.moveCount,
+            boardSize = engine.boardSize,
+            user = prefs,
+            pendingAchievementId = pendingAchievements.firstOrNull()?.id,
+            lastMergePoints = engine.lastMoveScore,
+            comboCount = engine.comboCount,
+            comboMultiplier = engine.comboMultiplier,
+            lastMergePositions = engine.lastMergePositions,
+            totalMerges = engine.totalMergesThisGame,
+            moveAnimationData = engine.lastMoveAnimationData,
+            isTimedMode = session.isTimed,
+            timedRemainingSeconds = session.timed?.remainingSeconds ?: 0,
+            timedDurationSeconds = session.timed?.durationSeconds ?: 0,
+            timedBestScore = session.timed?.bestScore ?: 0,
+            bestAtSessionStart = sessionBestAtStart
+        )
     }
 
     internal fun seedBoardForTesting(values: List<List<Int>>) {
@@ -340,15 +355,15 @@ return GameState(
             didUndo = didUseUndoThisGame,
             scoreOverTime = engine.scoreOverTime.takeLast(200),
             bestMove = engine.bestMoveThisGame,
-            mode = currentMode
+            mode = session.mode
         )
         onGameOver(record)
-        if (currentMode == GameMode.DAILY) {
+        if (session.mode == GameMode.DAILY) {
             // Persist a dedicated per-day record, keeping only the best score
             // ever achieved for that day's challenge. HistoryScreen reads this
             // straight from UserPreferences.
             val result = DailyChallengeResult(
-                dayNumber = currentDailyDay,
+                dayNumber = session.dayNumber,
                 finishedAtMs = record.finishedAtMs,
                 boardSize = record.boardSize,
                 score = record.score,
@@ -356,10 +371,10 @@ return GameState(
                 moveCount = record.moveCount,
                 won = record.won
             )
-            val previous = prefs.dailyChallengeResults[currentDailyDay]
+            val previous = prefs.dailyChallengeResults[session.dayNumber]
             if (previous == null || result.score > previous.score) {
                 prefs = prefs.copy(
-                    dailyChallengeResults = prefs.dailyChallengeResults + (currentDailyDay to result)
+                    dailyChallengeResults = prefs.dailyChallengeResults + (session.dayNumber to result)
                 )
             }
         }

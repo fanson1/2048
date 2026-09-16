@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.finley.android.merge2048.data.GameHistoryRepository
 import com.finley.android.merge2048.data.GameRepository
 import com.finley.android.merge2048.data.SettingsRepository
-import com.finley.android.merge2048.data.SoundEvent
 import com.finley.android.merge2048.data.SoundService
 import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.domain.GameIntent
@@ -52,13 +51,7 @@ class GameViewModel(
     init {
         // Apply the user's theme immediately so GameColors is correct from the
         // very first composition (before ProvideGameColors' SideEffect fires).
-        val themeId = settingsRepository.snapshot().themeId
-        val theme = when (themeId) {
-            "dark" -> GameTheme.Dark
-            "neon" -> GameTheme.Neon
-            else -> GameTheme.Classic
-        }
-        GameColors.apply(theme)
+        GameColors.apply(GameTheme.byId(settingsRepository.snapshot().themeId))
 
         // Persist any state changes back to the repositories.
         viewModelScope.launch {
@@ -134,37 +127,7 @@ class GameViewModel(
     }
 
     private fun playSoundFor(previous: GameState, next: GameState, intent: GameIntent) {
-        if (!next.user.soundEnabled) return
-        when (intent) {
-            is GameIntent.Move -> {
-                if (next.lastMergePoints > 0) {
-                    if (next.maxTile >= 128 || next.lastMergePoints >= 128) {
-                        soundService.play(SoundEvent.BigMerge)
-                    } else {
-                        soundService.play(SoundEvent.Merge)
-                    }
-                } else if (!next.isGameOver && previous.board == next.board) {
-                    soundService.play(SoundEvent.InvalidMove)
-                }
-                if (next.isGameOver && !previous.isGameOver) {
-                    soundService.play(SoundEvent.GameOver)
-                }
-            }
-            is GameIntent.NewGame -> soundService.play(SoundEvent.NewGame)
-            is GameIntent.StartDailyChallenge -> soundService.play(SoundEvent.NewGame)
-            is GameIntent.ChangeBoardSize -> soundService.play(SoundEvent.NewGame)
-            is GameIntent.StartTimedChallenge -> soundService.play(SoundEvent.NewGame)
-            is GameIntent.TimerTick -> { /* silent */ }
-            is GameIntent.TimerExpired -> soundService.play(SoundEvent.GameOver)
-            is GameIntent.Undo -> soundService.play(SoundEvent.Undo)
-            is GameIntent.TogglePause -> { /* silent */ }
-            is GameIntent.RestoreGame -> { /* silent */ }
-            is GameIntent.ApplyPreferences -> { /* silent */ }
-            is GameIntent.ConsumeAchievement -> soundService.play(SoundEvent.Achievement)
-            is GameIntent.DismissWinDialog -> { /* silent */ }
-            is GameIntent.ContinueAfterWin -> { /* silent */ }
-            is GameIntent.ClearMoveAnimation -> { /* silent */ }
-        }
+        computeGameSounds(previous, next, intent).forEach(soundService::play)
     }
 
     override fun onCleared() {

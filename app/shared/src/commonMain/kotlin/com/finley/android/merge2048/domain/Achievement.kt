@@ -288,15 +288,61 @@ enum class Achievement(
     }
 }
 
-/** Trigger kinds. Each is checked in [AchievementEngine]. */
+/**
+ * Trigger kinds. Each is a small **strategy** that decides on its own whether the
+ * surrounding context newly satisfies its condition, so the catalog entry stays the
+ * single source of truth for *when* an achievement unlocks. [AchievementEngine]
+ * simply iterates the catalog and asks every trigger.
+ */
 sealed class AchievementTrigger {
-    data object MergeAny : AchievementTrigger()
-    data class ReachTile(val tile: Int) : AchievementTrigger()
-    data class ChainInOneMove(val count: Int) : AchievementTrigger()
-    data class MovesReached(val count: Int) : AchievementTrigger()
-    data class ScoreReached(val value: Int) : AchievementTrigger()
-    data class GamesPlayedReached(val count: Int) : AchievementTrigger()
-    data object WinWithoutUndo : AchievementTrigger()
-    data class FastToTile(val tile: Int, val maxMoves: Int) : AchievementTrigger()
-    data class WinOnBoardSize(val size: Int) : AchievementTrigger()
+    abstract fun isNewlyUnlocked(
+        move: MoveContext?,
+        session: GameSessionContext,
+        win: WinContext?
+    ): Boolean
+
+    data object MergeAny : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            move != null && move.mergesInThisMove > 0
+    }
+
+    data class ReachTile(val tile: Int) : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            move != null && move.newMaxTile >= tile && move.previousMaxTile < tile
+    }
+
+    data class ChainInOneMove(val count: Int) : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            move != null && move.mergesInThisMove >= count
+    }
+
+    data class MovesReached(val count: Int) : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            move != null && move.moveCount >= count
+    }
+
+    data class ScoreReached(val value: Int) : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            move != null && move.newScore >= value && move.previousScore < value
+    }
+
+    data class GamesPlayedReached(val count: Int) : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            session.gamesPlayed >= count
+    }
+
+    data object WinWithoutUndo : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            win != null && win.didWin && !win.didUndo
+    }
+
+    data class FastToTile(val tile: Int, val maxMoves: Int) : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            move != null && move.newMaxTile >= tile && move.moveCount <= maxMoves
+    }
+
+    data class WinOnBoardSize(val size: Int) : AchievementTrigger() {
+        override fun isNewlyUnlocked(move: MoveContext?, session: GameSessionContext, win: WinContext?): Boolean =
+            win != null && win.didWin && win.boardSize == size
+    }
 }

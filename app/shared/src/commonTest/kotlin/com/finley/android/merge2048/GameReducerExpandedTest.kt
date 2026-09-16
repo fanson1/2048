@@ -55,6 +55,43 @@ class GameReducerExpandedTest {
         assertEquals(0, state.score)
     }
 
+    // ----- games-played achievements fire on every round-started path -----
+
+    @Test
+    fun `starting a daily challenge unlocks games-played achievements immediately`() {
+        val reducer = GameReducer()
+        reducer.reduce(
+            GameState(),
+            GameIntent.ApplyPreferences(UserPreferences.Default.copy(gamesPlayed = 9))
+        )
+        val state = reducer.reduce(GameState(), GameIntent.StartDailyChallenge(seed = 1))
+        assertTrue(Achievement.GamePlayed10.id in state.user.unlockedAchievementIds)
+        assertEquals(Achievement.GamePlayed10.id, state.pendingAchievementId)
+    }
+
+    @Test
+    fun `changing board size unlocks games-played achievements immediately`() {
+        val reducer = GameReducer()
+        reducer.reduce(
+            GameState(),
+            GameIntent.ApplyPreferences(UserPreferences.Default.copy(gamesPlayed = 9))
+        )
+        val state = reducer.reduce(GameState(), GameIntent.ChangeBoardSize(5))
+        assertTrue(Achievement.GamePlayed10.id in state.user.unlockedAchievementIds)
+    }
+
+    @Test
+    fun `expiring a timed challenge unlocks games-played achievements immediately`() {
+        val reducer = GameReducer()
+        reducer.reduce(
+            GameState(),
+            GameIntent.ApplyPreferences(UserPreferences.Default.copy(gamesPlayed = 9))
+        )
+        reducer.reduce(GameState(), GameIntent.StartTimedChallenge(durationSeconds = 60))
+        val state = reducer.reduce(GameState(), GameIntent.TimerExpired)
+        assertTrue(Achievement.GamePlayed10.id in state.user.unlockedAchievementIds)
+    }
+
     // ----- achievement detection -----
 
     @Test
