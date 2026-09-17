@@ -24,6 +24,8 @@ data class UserPreferences(
     val hasSeenTutorial: Boolean = false,
     val unlockedAchievementIds: Set<String> = emptySet(),
     val themeId: String = "classic",
+    /** Merge rule variant (classic, threes, fibonacci). */
+    val mergeRuleId: String = "classic",
     /** BCP 47 language tag. "system" defers to the OS locale. */
     val language: String = "system",
     /** Per-day results of the daily challenge, keyed by day number (see [DailyChallenge]). */

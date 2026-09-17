@@ -27,6 +27,9 @@ sealed class GameIntent {
     /** Apply persisted user preferences (best scores, settings, achievements). */
     data class ApplyPreferences(val prefs: UserPreferences) : GameIntent()
 
+    /** Change merge rule variant and start a new game. */
+    data class ChangeMergeRule(val mergeRuleId: String) : GameIntent()
+
     /** Acknowledge and clear a fired achievement event. */
     data class ConsumeAchievement(val id: String) : GameIntent()
 

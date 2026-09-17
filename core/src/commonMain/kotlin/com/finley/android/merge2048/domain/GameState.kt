@@ -42,5 +42,7 @@ data class GameState(
      * "NEW RECORD!" — this avoids a false positive on the first few moves
      * where the running score merely catches up to the stored best.
      */
-    val bestAtSessionStart: Int = 0
+    val bestAtSessionStart: Int = 0,
+    /** Current merge rule variant (classic, threes, fibonacci). */
+    val mergeRuleId: String = "classic"
 )

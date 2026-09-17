@@ -38,7 +38,9 @@ data class GameRecord(
      *  which may be truncated — so it stays accurate even for very long games. */
     val bestMove: Int = 0,
     /** Where this game came from (normal / daily / timed). */
-    val mode: GameMode = GameMode.NORMAL
+    val mode: GameMode = GameMode.NORMAL,
+    /** Merge rule variant used (classic, threes, fibonacci). */
+    val mergeRuleId: String = "classic"
 ) {
     /** Average points per move. */
     val avgPerMove: Double

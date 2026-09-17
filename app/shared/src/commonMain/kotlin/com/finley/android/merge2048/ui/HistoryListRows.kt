@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.finley.android.merge2048.domain.MergeRules
 import com.finley.android.merge2048.domain.DailyChallengeResult
 import com.finley.android.merge2048.domain.GameMode
 import com.finley.android.merge2048.domain.GameRecord
@@ -71,6 +72,26 @@ internal fun ModeBadge(mode: GameMode) {
 }
 
 @Composable
+internal fun MergeRuleBadge(ruleId: String) {
+    val (label, bgColor) = when (ruleId) {
+        "threes" -> "Threes!" to Color(0xFF8B5CF6)
+        "fibonacci" -> "Fib" to Color(0xFFE63B2E)
+        else -> "Classic" to Color(0xFF8F7A66)
+    }
+    Text(
+        text = label,
+        fontSize = 9.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(bgColor)
+            .padding(horizontal = 6.dp, vertical = 2.dp)
+    )
+}
+
+@Composable
 internal fun LeaderboardRow(rank: Int, record: GameRecord) {
     val medalColor = when (rank) {
         1 -> Color(0xFFF2B705) // gold
@@ -114,6 +135,7 @@ internal fun LeaderboardRow(rank: Int, record: GameRecord) {
             )
         }
         ModeBadge(mode = record.mode)
+        MergeRuleBadge(ruleId = record.mergeRuleId)
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = formatTimeAgo(record.finishedAtMs),
@@ -208,6 +230,7 @@ internal fun GameRecordRow(record: GameRecord) {
             )
         }
         ModeBadge(mode = record.mode)
+        MergeRuleBadge(ruleId = record.mergeRuleId)
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = formatTimeAgo(record.finishedAtMs),

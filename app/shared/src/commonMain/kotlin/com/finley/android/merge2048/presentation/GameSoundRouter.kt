@@ -32,7 +32,8 @@ fun computeGameSounds(previous: GameState, next: GameState, intent: GameIntent):
         is GameIntent.NewGame,
         is GameIntent.StartDailyChallenge,
         is GameIntent.ChangeBoardSize,
-        is GameIntent.StartTimedChallenge -> sounds += SoundEvent.NewGame
+        is GameIntent.StartTimedChallenge,
+        is GameIntent.ChangeMergeRule -> sounds += SoundEvent.NewGame
         is GameIntent.TimerExpired -> sounds += SoundEvent.GameOver
         is GameIntent.Undo -> sounds += SoundEvent.Undo
         is GameIntent.ConsumeAchievement -> sounds += SoundEvent.Achievement

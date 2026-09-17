@@ -54,6 +54,7 @@ import com.finley.android.merge2048.data.setAppLocale
 import com.finley.android.merge2048.ui.theme.GameColors
 import com.finley.android.merge2048.domain.AnimationLevel
 import com.finley.android.merge2048.domain.Achievement
+import com.finley.android.merge2048.domain.MergeRules
 import com.finley.android.merge2048.domain.UserPreferences
 import org.jetbrains.compose.resources.stringResource
 
@@ -179,6 +180,24 @@ fun SettingsScreen(
                         selected = prefs.themeId == theme.id,
                         enabled = unlocked,
                         onClick = { if (unlocked) onUpdate(prefs.copy(themeId = theme.id)) }
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // ---- Merge Rule ----
+        SettingSection(mergeRuleSectionTitle()) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                MergeRules.all.forEach { rule ->
+                    val displayName = mergeRuleDisplayName(rule.id)
+                    val description = mergeRuleDescription(rule.id)
+                    SelectableRow(
+                        label = displayName,
+                        subtitle = description,
+                        selected = prefs.mergeRuleId == rule.id,
+                        onClick = { onUpdate(prefs.copy(mergeRuleId = rule.id)) }
                     )
                 }
             }

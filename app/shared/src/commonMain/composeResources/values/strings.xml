@@ -119,6 +119,7 @@
     <string name="settings_section_language">LANGUAGE</string>
     <string name="settings_section_board_size">BOARD SIZE</string>
     <string name="settings_section_theme">THEME</string>
+    <string name="settings_section_merge_rule">MERGE RULE</string>
     <string name="settings_section_animation">ANIMATION</string>
     <string name="settings_section_appearance">APPEARANCE</string>
     <string name="settings_section_sound">SOUND</string>
@@ -278,6 +279,14 @@
     <string name="theme_retro_unlock">Reach 512 tile</string>
     <string name="theme_ocean_name">Ocean</string>
     <string name="theme_ocean_unlock">Reach 2048 tile</string>
+
+    <!-- ===== Game rules / variants ===== -->
+    <string name="rule_classic_name">Classic 2048</string>
+    <string name="rule_classic_desc">Equal tiles merge into double (2+2=4, 4+4=8...)</string>
+    <string name="rule_threes_name">Threes!</string>
+    <string name="rule_threes_desc">1+2=3, then equal tiles merge (3+3=6, 6+6=12...)</string>
+    <string name="rule_fibonacci_name">Fibonacci</string>
+    <string name="rule_fibonacci_desc">Adjacent Fibonacci numbers merge (1+2=3, 2+3=5, 3+5=8...)</string>
 
     <!-- ===== Share score ===== -->
     <string name="share_button">Share</string>

@@ -14,7 +14,8 @@ data class GameSnapshot(
     val moveCount: Int,
     val hasWon: Boolean,
     val boardSize: Int,
-    val lastMoveAtMs: Long = 0L
+    val lastMoveAtMs: Long = 0L,
+    val mergeRuleId: String = "classic"
 ) {
     fun toGameState(prefs: UserPreferences): GameState = GameState(
         board = board,
@@ -28,7 +29,8 @@ data class GameSnapshot(
         canUndo = false,
         moveCount = moveCount,
         boardSize = boardSize,
-        user = prefs
+        user = prefs,
+        mergeRuleId = mergeRuleId
     )
 
     companion object {
@@ -37,7 +39,8 @@ data class GameSnapshot(
             score = state.score,
             moveCount = state.moveCount,
             hasWon = state.hasWon,
-            boardSize = state.boardSize
+            boardSize = state.boardSize,
+            mergeRuleId = state.mergeRuleId
         )
     }
 }

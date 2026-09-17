@@ -119,6 +119,7 @@
     <string name="settings_section_language">语言</string>
     <string name="settings_section_board_size">棋盘大小</string>
     <string name="settings_section_theme">主题</string>
+    <string name="settings_section_merge_rule">合并规则</string>
     <string name="settings_section_animation">动画</string>
     <string name="settings_section_appearance">外观</string>
     <string name="settings_section_sound">声音</string>
@@ -278,6 +279,14 @@
     <string name="theme_retro_unlock">达到512方块</string>
     <string name="theme_ocean_name">海洋</string>
     <string name="theme_ocean_unlock">达到2048方块</string>
+
+    <!-- ===== Game rules / variants ===== -->
+    <string name="rule_classic_name">经典 2048</string>
+    <string name="rule_classic_desc">相同方块合并为双倍 (2+2=4, 4+4=8...)</string>
+    <string name="rule_threes_name">Threes!</string>
+    <string name="rule_threes_desc">1+2=3，之后相同合并 (3+3=6, 6+6=12...)</string>
+    <string name="rule_fibonacci_name">斐波那契</string>
+    <string name="rule_fibonacci_desc">相邻斐波那契数合并 (1+2=3, 2+3=5, 3+5=8...)</string>
 
     <!-- ===== Share score ===== -->
     <string name="share_button">分享</string>

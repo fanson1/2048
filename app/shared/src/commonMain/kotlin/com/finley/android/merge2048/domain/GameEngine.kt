@@ -2,13 +2,16 @@ package com.finley.android.merge2048.domain
 
 import kotlin.random.Random
 
-class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
+class GameEngine(
+    val boardSize: Int = 4,
+    val seed: Int? = null,
+    val mergeRule: MergeRule = ClassicMergeRule
+) {
     init {
         require(boardSize in 3..6) { "Board size must be 3..6 (got $boardSize)" }
     }
 
     companion object {
-        const val WIN_VALUE = 2048
         const val MAX_HISTORY = 50
     }
 
@@ -158,7 +161,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         comboCount = 0
         hasUsedUndo = true
         // Recompute verdicts from restored board
-        hasWon = board.any { row -> row.any { it == WIN_VALUE } }
+        hasWon = mergeRule.checkWin(board.map { it.toList() })
         if (!canMove()) {
             isGameOver = true
         }
@@ -177,7 +180,9 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
 
         if (emptyCells.isNotEmpty()) {
             val (row, col) = emptyCells[rng.nextInt(emptyCells.size)]
-            board[row][col] = if (rng.nextFloat() < 0.9f) 2 else 4
+            val spawn = mergeRule.spawnValues
+            val prob = mergeRule.spawnProbability
+            board[row][col] = if (spawn.size == 1 || rng.nextFloat() < prob) spawn[0] else spawn[1]
         }
     }
 
@@ -309,10 +314,10 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         val merged = mutableListOf<Int>()
         var i = 0
         while (i < row.size) {
-            if (i + 1 < row.size && row[i] == row[i + 1]) {
-                val mergedValue = row[i] * 2
+            if (i + 1 < row.size && mergeRule.canMerge(row[i], row[i + 1])) {
+                val mergedValue = mergeRule.mergeResult(row[i], row[i + 1])
                 merged.add(mergedValue)
-                score += mergedValue
+                score += mergeRule.mergeScore(row[i], row[i + 1])
                 lastMoveMergeCount += 1
                 totalMergesThisGame += 1
 
@@ -338,7 +343,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
 
     private fun checkGameState() {
         if (!hasWon) {
-            hasWon = board.any { row -> row.any { it == WIN_VALUE } }
+            hasWon = mergeRule.checkWin(board.map { it.toList() })
         }
 
         if (!canMove()) {
@@ -346,17 +351,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         }
     }
 
-    private fun canMove(): Boolean {
-        for (i in 0 until boardSize) {
-            for (j in 0 until boardSize) {
-                if (board[i][j] == 0) return true
-
-                if (j + 1 < boardSize && board[i][j] == board[i][j + 1]) return true
-                if (i + 1 < boardSize && board[i][j] == board[i + 1][j]) return true
-            }
-        }
-        return false
-    }
+    private fun canMove(): Boolean = mergeRule.canMove(board.map { it.toList() })
 
     fun getBoard(): List<List<Int>> {
         return board.map { it.toList() }
@@ -388,7 +383,7 @@ class GameEngine(val boardSize: Int = 4, val seed: Int? = null) {
         moveAnimationSeq = 0
         hasUsedUndo = false
         isGameOver = false
-        hasWon = false
+        hasWon = mergeRule.checkWin(board.map { it.toList() })
         moveCount = 0
         history.clear()
         scoreHistory.clear()

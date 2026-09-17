@@ -12,7 +12,7 @@ class GameReducer(
     private val achievementEngine: AchievementEngine = AchievementEngine(),
     private val onGameOver: (GameRecord) -> Unit = {}
 ) {
-    private var engine: GameEngine = GameEngine()
+    private var engine: GameEngine = GameEngine(mergeRule = MergeRules.byId("classic"))
     private var prefs: UserPreferences = UserPreferences.Default
     private var pendingAchievements: ArrayDeque<Achievement> = ArrayDeque()
     private var didUseUndoThisGame: Boolean = false
@@ -85,6 +85,7 @@ class GameReducer(
             is GameIntent.ApplyPreferences -> handleApplyPrefs(previous, intent)
             is GameIntent.ConsumeAchievement -> handleConsumeAchievement(previous, intent.id)
             is GameIntent.ClearMoveAnimation -> handleClearMoveAnimation(previous)
+            is GameIntent.ChangeMergeRule -> handleChangeMergeRule(intent.mergeRuleId)
         }
     }
 
@@ -113,7 +114,7 @@ class GameReducer(
      *   val seed = dayNumber * 7919 + 1
      */
     private fun handleDailyChallenge(boardSize: Int, seed: Int): GameState {
-        engine = GameEngine(boardSize = boardSize, seed = seed)
+        engine = GameEngine(boardSize = boardSize, seed = seed, mergeRule = MergeRules.byId(prefs.mergeRuleId))
         beginRound(GameMode.DAILY, dayNumber = DailyChallenge.dayFromSeed(seed))
         recordGameStarted()
         return emitState()
@@ -121,7 +122,7 @@ class GameReducer(
 
     private fun handleChangeBoardSize(boardSize: Int): GameState {
         prefs = prefs.copy(boardSize = boardSize)
-        engine = GameEngine(boardSize = boardSize)
+        engine = GameEngine(boardSize = boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
         beginRound(GameMode.NORMAL)
         recordGameStarted()
         return emitState()
@@ -129,7 +130,7 @@ class GameReducer(
 
     private fun handleTimedChallenge(boardSize: Int, durationSeconds: Int): GameState {
         prefs = prefs.copy(boardSize = boardSize)
-        engine = GameEngine(boardSize = boardSize)
+        engine = GameEngine(boardSize = boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
         beginRound(GameMode.TIMED, timed = TimedClock(durationSeconds))
         return emitState()
     }
@@ -213,7 +214,15 @@ class GameReducer(
     }
 
     private fun handleNewGame(): GameState {
-        engine = GameEngine(boardSize = prefs.boardSize)
+        engine = GameEngine(boardSize = prefs.boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
+        beginRound(GameMode.NORMAL)
+        recordGameStarted()
+        return emitState()
+    }
+
+    private fun handleChangeMergeRule(mergeRuleId: String): GameState {
+        prefs = prefs.copy(mergeRuleId = mergeRuleId)
+        engine = GameEngine(boardSize = prefs.boardSize, mergeRule = MergeRules.byId(mergeRuleId))
         beginRound(GameMode.NORMAL)
         recordGameStarted()
         return emitState()
@@ -252,7 +261,7 @@ class GameReducer(
 
     private fun handleRestore(intent: GameIntent.RestoreGame): GameState {
         prefs = intent.prefs
-        engine = GameEngine(boardSize = intent.snapshot.boardSize)
+        engine = GameEngine(boardSize = intent.snapshot.boardSize, mergeRule = MergeRules.byId(intent.snapshot.mergeRuleId))
         engine.restore(intent.snapshot.board, restoredScore = intent.snapshot.score)
         beginRound(GameMode.NORMAL)
         // The win dialog was already shown when the player quit — don't show it again.
@@ -262,9 +271,10 @@ class GameReducer(
 
     private fun handleApplyPrefs(previous: GameState, intent: GameIntent.ApplyPreferences): GameState {
         val boardSizeChanged = prefs.boardSize != intent.prefs.boardSize
+        val mergeRuleChanged = prefs.mergeRuleId != intent.prefs.mergeRuleId
         prefs = intent.prefs
-        return if (boardSizeChanged && !engine.isGameOver) {
-            engine = GameEngine(boardSize = prefs.boardSize)
+        return if ((boardSizeChanged || mergeRuleChanged) && !engine.isGameOver) {
+            engine = GameEngine(boardSize = prefs.boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
             didUseUndoThisGame = false
             winDialogShown = false
             emitState()
@@ -277,7 +287,8 @@ class GameReducer(
                 bestMaxTile = prefs.bestMaxTile,
                 bestMaxTileByBoardSize = prefs.bestMaxTileByBoardSize,
                 boardSize = engine.boardSize,
-                user = prefs
+                user = prefs,
+                mergeRuleId = prefs.mergeRuleId
             )
         }
     }
@@ -326,7 +337,8 @@ class GameReducer(
             timedRemainingSeconds = session.timed?.remainingSeconds ?: 0,
             timedDurationSeconds = session.timed?.durationSeconds ?: 0,
             timedBestScore = session.timed?.bestScore ?: 0,
-            bestAtSessionStart = sessionBestAtStart
+            bestAtSessionStart = sessionBestAtStart,
+            mergeRuleId = prefs.mergeRuleId
         )
     }
 
@@ -355,7 +367,8 @@ class GameReducer(
             didUndo = didUseUndoThisGame,
             scoreOverTime = engine.scoreOverTime.takeLast(200),
             bestMove = engine.bestMoveThisGame,
-            mode = session.mode
+            mode = session.mode,
+            mergeRuleId = prefs.mergeRuleId
         )
         onGameOver(record)
         if (session.mode == GameMode.DAILY) {
