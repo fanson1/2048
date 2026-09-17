@@ -272,6 +272,12 @@
     <string name="theme_dark_unlock">玩5局游戏</string>
     <string name="theme_neon_name">霓虹</string>
     <string name="theme_neon_unlock">达到1024方块</string>
+    <string name="theme_pastel_name">柔彩</string>
+    <string name="theme_pastel_unlock">始终可用</string>
+    <string name="theme_retro_name">复古</string>
+    <string name="theme_retro_unlock">达到512方块</string>
+    <string name="theme_ocean_name">海洋</string>
+    <string name="theme_ocean_unlock">达到2048方块</string>
 
     <!-- ===== Share score ===== -->
     <string name="share_button">分享</string>

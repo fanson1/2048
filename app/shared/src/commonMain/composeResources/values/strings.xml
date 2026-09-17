@@ -272,6 +272,12 @@
     <string name="theme_dark_unlock">Play 5 games</string>
     <string name="theme_neon_name">Neon</string>
     <string name="theme_neon_unlock">Reach 1024 tile</string>
+    <string name="theme_pastel_name">Pastel</string>
+    <string name="theme_pastel_unlock">Always available</string>
+    <string name="theme_retro_name">Retro</string>
+    <string name="theme_retro_unlock">Reach 512 tile</string>
+    <string name="theme_ocean_name">Ocean</string>
+    <string name="theme_ocean_unlock">Reach 2048 tile</string>
 
     <!-- ===== Share score ===== -->
     <string name="share_button">Share</string>
