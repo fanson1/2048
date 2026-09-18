@@ -10,9 +10,13 @@ import kotlinx.serialization.Serializable
 enum class GameMode { NORMAL, DAILY, TIMED }
 
 /**
- * One finished game, persisted to local storage. Powers the history screen,
+ * One game record, persisted to local storage. Powers the history screen,
  * charts and lifetime statistics. The board itself is not stored — only the
  * summary metrics, plus an optional score-over-time curve for short games.
+ *
+ * When [incomplete] is true, the game was not finished (e.g. the player
+ * tapped "Restart") and [snapshotJson] holds the serialized [GameSnapshot]
+ * so the player can resume it later from the history list.
  */
 @Serializable
 data class GameRecord(
@@ -40,7 +44,13 @@ data class GameRecord(
     /** Where this game came from (normal / daily / timed). */
     val mode: GameMode = GameMode.NORMAL,
     /** Merge rule variant used (classic, threes, fibonacci). */
-    val mergeRuleId: String = "classic"
+    val mergeRuleId: String = "classic",
+    /** True when the game was not finished (e.g. player tapped "Restart" while
+     *  in progress) — the record is kept in history so the player can resume. */
+    val incomplete: Boolean = false,
+    /** JSON-serialized [GameSnapshot] captured at the moment the game was
+     *  abandoned. Only non-null when [incomplete] is true. */
+    val snapshotJson: String? = null
 ) {
     /** Average points per move. */
     val avgPerMove: Double
