@@ -187,7 +187,7 @@ fun SettingsScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-// ---- Merge Rule ----
+        // ---- Merge Rule ----
         SettingSection(mergeRuleSectionTitle()) {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 MergeRules.all.forEach { rule ->

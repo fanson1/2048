@@ -1,12 +1,15 @@
 package com.finley.android.merge2048.domain
 
 import kotlinx.serialization.Serializable
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Persistent user settings and the player's best record.
  * Held in [GameState.user] so the UI can read them in one place; persisted via
  * [com.finley.android.merge2048.data.SettingsRepository].
  */
+@OptIn(ExperimentalUuidApi::class)
 @Serializable
 data class UserPreferences(
     val bestScore: Int = 0,
@@ -29,7 +32,11 @@ data class UserPreferences(
     /** BCP 47 language tag. "system" defers to the OS locale. */
     val language: String = "system",
     /** Per-day results of the daily challenge, keyed by day number (see [DailyChallenge]). */
-    val dailyChallengeResults: Map<Int, DailyChallengeResult> = emptyMap()
+    val dailyChallengeResults: Map<Int, DailyChallengeResult> = emptyMap(),
+    /** Cloud sync account ID. Null if not signed in. */
+    val accountId: String? = null,
+    /** Unique device identifier for conflict detection. */
+    val deviceId: String = Uuid.random().toString()
 ) {
     companion object {
         val Default = UserPreferences()

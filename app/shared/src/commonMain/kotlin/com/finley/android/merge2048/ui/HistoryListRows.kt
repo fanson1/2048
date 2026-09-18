@@ -74,9 +74,9 @@ internal fun ModeBadge(mode: GameMode) {
 @Composable
 internal fun MergeRuleBadge(ruleId: String) {
     val (label, bgColor) = when (ruleId) {
-        "threes" -> "Threes!" to Color(0xFF8B5CF6)
-        "fibonacci" -> "Fib" to Color(0xFFE63B2E)
-        else -> "Classic" to Color(0xFF8F7A66)
+        "threes" -> mergeRuleDisplayName("threes") to Color(0xFF8B5CF6)
+        "fibonacci" -> mergeRuleDisplayName("fibonacci") to Color(0xFFE63B2E)
+        else -> mergeRuleDisplayName("classic") to Color(0xFF8F7A66)
     }
     Text(
         text = label,
