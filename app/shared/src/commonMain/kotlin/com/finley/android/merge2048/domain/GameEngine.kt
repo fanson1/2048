@@ -142,6 +142,14 @@ class GameEngine(
         initializeBoard()
     }
 
+    /**
+     * Force-end the current round. Used when the player declines to continue
+     * past a milestone tile (2048, 4096, ...) — the game stops right there.
+     */
+    fun finishGame() {
+        isGameOver = true
+    }
+
     /** Clears the per-move animation data so tiles stop referencing a stale move. */
     fun clearMoveAnimationData() {
         lastMoveAnimationData = null

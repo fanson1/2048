@@ -4,7 +4,9 @@ import com.finley.android.merge2048.domain.Achievement
 import com.finley.android.merge2048.domain.AnimationLevel
 import com.finley.android.merge2048.domain.Direction
 import com.finley.android.merge2048.domain.GameIntent
+import com.finley.android.merge2048.domain.GameRecord
 import com.finley.android.merge2048.domain.GameReducer
+import com.finley.android.merge2048.domain.GameSnapshot
 import com.finley.android.merge2048.domain.GameState
 import com.finley.android.merge2048.domain.UserPreferences
 import kotlin.test.Test
@@ -357,5 +359,86 @@ class GameReducerExpandedTest {
         val newGame = reducer.reduce(afterMove, GameIntent.NewGame)
         assertFalse(newGame.canUndo)
         assertEquals(0, newGame.undoCount)
+    }
+
+    @Test
+    fun `continuing past a milestone hides the dialog and re-arms the next one`() {
+        val reducer = freshReducer()
+        reducer.seedBoardForTesting(
+            listOf(
+                listOf(1024, 1024, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0)
+            )
+        )
+        val at2048 = reducer.reduce(GameState(), GameIntent.Move(Direction.LEFT))
+        assertTrue(at2048.showWinDialog)
+        assertEquals(2048, at2048.winDialogTile)
+
+        val continued = reducer.reduce(at2048, GameIntent.ContinueAfterWin)
+        assertFalse(continued.showWinDialog)
+        assertFalse(continued.isGameOver)
+
+        // Reaching the next milestone (4096) offers the dialog again.
+        reducer.seedBoardForTesting(
+            listOf(
+                listOf(2048, 2048, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0)
+            )
+        )
+        val at4096 = reducer.reduce(continued, GameIntent.Move(Direction.LEFT))
+        assertTrue(at4096.showWinDialog)
+        assertEquals(4096, at4096.winDialogTile)
+        assertTrue(at4096.hasWon)
+    }
+
+    @Test
+    fun `ending the game at a milestone records a win and turns game over on`() {
+        var record: GameRecord? = null
+        val reducer = GameReducer(onRecord = { record = it })
+        reducer.reduce(GameState(), GameIntent.NewGame)
+        reducer.seedBoardForTesting(
+            listOf(
+                listOf(1024, 1024, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0),
+                listOf(0, 0, 0, 0)
+            )
+        )
+        val at2048 = reducer.reduce(GameState(), GameIntent.Move(Direction.LEFT))
+        assertTrue(at2048.showWinDialog)
+
+        val ended = reducer.reduce(at2048, GameIntent.EndGameAfterWin)
+        assertTrue(ended.isGameOver)
+        assertFalse(ended.showWinDialog)
+        assertTrue(ended.hasWon)
+        assertNotNull(record)
+        assertTrue(record?.won == true)
+        assertEquals(2048, record?.maxTile)
+    }
+
+    @Test
+    fun `restoring a game that already passed a milestone does not re-show its dialog`() {
+        val reducer = freshReducer()
+        val board = listOf(
+            listOf(1024, 2048, 0, 0),
+            listOf(0, 0, 0, 0),
+            listOf(0, 0, 0, 0),
+            listOf(0, 0, 0, 0)
+        )
+        val snapshot = GameSnapshot(
+            board = board,
+            score = 0,
+            moveCount = 10,
+            hasWon = true,
+            boardSize = 4,
+            mergeRuleId = "classic"
+        )
+        val restored = reducer.reduce(GameState(), GameIntent.RestoreGame(snapshot, UserPreferences.Default))
+        assertFalse(restored.showWinDialog)
+        assertEquals(2048, restored.maxTile)
     }
 }

@@ -224,7 +224,7 @@ internal fun GameContent(
                 onSwipe = { direction -> onIntent(GameIntent.Move(direction)) },
                 onNewGame = { onIntent(GameIntent.NewGame) },
                 onContinue = { onIntent(GameIntent.ContinueAfterWin) },
-                onDismissWin = { onIntent(GameIntent.DismissWinDialog) },
+                onEndGame = { onIntent(GameIntent.EndGameAfterWin) },
                 onTogglePause = { onIntent(GameIntent.TogglePause) },
                 modifier = Modifier
                     .fillMaxWidth()

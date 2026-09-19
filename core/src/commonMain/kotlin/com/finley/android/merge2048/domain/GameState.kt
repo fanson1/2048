@@ -11,6 +11,8 @@ data class GameState(
     val isGameOver: Boolean = false,
     val hasWon: Boolean = false,
     val showWinDialog: Boolean = false,
+    /** Milestone tile value for which the "continue?" dialog is shown (0 = none). */
+    val winDialogTile: Int = 0,
     val maxTile: Int = 0,
     val bestMaxTile: Int = 0,
     val bestMaxTileByBoardSize: Map<Int, Int> = emptyMap(),

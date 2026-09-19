@@ -40,9 +40,10 @@
 
     <!-- ===== Win overlay ===== -->
     <string name="dialog_win_title">你赢了！</string>
-    <string name="dialog_win_subtitle">你合出了2048方块！</string>
+    <string name="dialog_win_subtitle">你合出了 %1$d 方块！</string>
     <string name="dialog_win_play_again">再来一局</string>
     <string name="dialog_win_keep_going">继续挑战</string>
+    <string name="dialog_win_end_game">结束游戏</string>
     <string name="overlay_close_button">关闭</string>
     <string name="overlay_score_label">分数</string>
     <string name="overlay_best_label">最高</string>

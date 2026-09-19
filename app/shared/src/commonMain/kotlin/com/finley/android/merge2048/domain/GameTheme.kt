@@ -94,7 +94,11 @@ sealed class GameTheme(
             value <= 512 -> Color(0xFFEDC850)
             value <= 1024 -> Color(0xFFEDC53F)
             value <= 2048 -> Color(0xFFEDC22E)
-            else -> Color(0xFF3C3A32)
+            value <= 4096 -> Color(0xFF3C3A32)
+            value <= 8192 -> Color(0xFF5A4A3A)
+            value <= 16384 -> Color(0xFF3A4A5A)
+            value <= 32768 -> Color(0xFF4A3A5A)
+            else -> Color(0xFF2A2A2E)
         }
 
         override fun tileTextColor(value: Int) = when {
@@ -131,6 +135,10 @@ sealed class GameTheme(
             value <= 512 -> Color(0xFFE74C3C)
             value <= 1024 -> Color(0xFF9B59B6)
             value <= 2048 -> Color(0xFFE94235)
+            value <= 4096 -> Color(0xFFF06292)
+            value <= 8192 -> Color(0xFFE91E63)
+            value <= 16384 -> Color(0xFFBA68C8)
+            value <= 32768 -> Color(0xFF6A1B9A)
             else -> Color(0xFFECF0F1)
         }
 
@@ -168,6 +176,10 @@ sealed class GameTheme(
             value <= 512 -> Color(0xFF0088FF)
             value <= 1024 -> Color(0xFF0044FF)
             value <= 2048 -> Color(0xFFFF00FF)
+            value <= 4096 -> Color(0xFFFFFFFF)
+            value <= 8192 -> Color(0xFF00FFAA)
+            value <= 16384 -> Color(0xFFFFAA00)
+            value <= 32768 -> Color(0xFFAA00FF)
             else -> Color(0xFFFFFF00)
         }
 
@@ -206,6 +218,10 @@ sealed class GameTheme(
             value <= 512 -> Color(0xFFD8C078)
             value <= 1024 -> Color(0xFFD0B868)
             value <= 2048 -> Color(0xFFC8B058)
+            value <= 4096 -> Color(0xFFC8B060)
+            value <= 8192 -> Color(0xFFC8A850)
+            value <= 16384 -> Color(0xFFB89848)
+            value <= 32768 -> Color(0xFFA88840)
             else -> Color(0xFF8B8070)
         }
 
@@ -243,7 +259,11 @@ sealed class GameTheme(
             value <= 512 -> Color(0xFFFF8800)
             value <= 1024 -> Color(0xFFFF4444)
             value <= 2048 -> Color(0xFFFF0088)
-            else -> Color(0xFFAA00FF)
+            value <= 4096 -> Color(0xFFFF44FF)
+            value <= 8192 -> Color(0xFF44AAFF)
+            value <= 16384 -> Color(0xFF00FF88)
+            value <= 32768 -> Color(0xFFAAAAFF)
+            else -> Color(0xFFFFFF00)
         }
 
         override fun tileTextColor(value: Int) = when {
@@ -281,6 +301,10 @@ sealed class GameTheme(
             value <= 512 -> Color(0xFF00CCDD)
             value <= 1024 -> Color(0xFF00DDEE)
             value <= 2048 -> Color(0xFF00EEFF)
+            value <= 4096 -> Color(0xFF66E0FF)
+            value <= 8192 -> Color(0xFF33CCFF)
+            value <= 16384 -> Color(0xFF66B3FF)
+            value <= 32768 -> Color(0xFF9999FF)
             else -> Color(0xFF4DD0E1)
         }
 

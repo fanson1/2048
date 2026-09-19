@@ -25,7 +25,13 @@ class GameReducer(
     private var prefs: UserPreferences = UserPreferences.Default
     private var pendingAchievements: ArrayDeque<Achievement> = ArrayDeque()
     private var didUseUndoThisGame: Boolean = false
-    private var winDialogShown: Boolean = false
+    /**
+     * Highest milestone tile (2048, 4096, 8192, ...) the player has already
+     * been asked about this round and resolved — by choosing to continue, by
+     * ending the game at that milestone, or by restoring a game whose tiles
+     * already exceed it. Each milestone's "continue?" dialog fires at most once.
+     */
+    private var milestonesResolved: Int = 0
 
     /**
      * Guards against writing more than one history record for the same game.
@@ -90,8 +96,9 @@ class GameReducer(
             is GameIntent.StartTimedChallenge -> handleTimedChallenge(intent.boardSize, intent.durationSeconds)
             is GameIntent.TimerTick -> handleTimerTick()
             is GameIntent.TimerExpired -> handleTimerExpired()
-            is GameIntent.DismissWinDialog -> previous.copy(showWinDialog = false)
-            is GameIntent.ContinueAfterWin -> previous.copy(showWinDialog = false)
+            is GameIntent.DismissWinDialog -> previous.copy(showWinDialog = false, winDialogTile = 0)
+            is GameIntent.ContinueAfterWin -> handleContinueAfterWin(previous)
+            is GameIntent.EndGameAfterWin -> handleEndGameAfterWin(previous)
             is GameIntent.Undo -> handleUndo(previous)
             is GameIntent.RestoreGame -> handleRestore(intent)
             is GameIntent.ApplyPreferences -> handleApplyPrefs(previous, intent)
@@ -111,7 +118,7 @@ class GameReducer(
      */
     private fun beginRound(mode: GameMode, dayNumber: Int = 0, timed: TimedClock? = null) {
         didUseUndoThisGame = false
-        winDialogShown = false
+        milestonesResolved = 0
         recordEmittedForCurrentGame = false
         pendingAchievements.clear()
         session = GameSession(mode = mode, dayNumber = dayNumber, timed = timed)
@@ -328,8 +335,10 @@ class GameReducer(
         engine = GameEngine(boardSize = intent.snapshot.boardSize, mergeRule = MergeRules.byId(intent.snapshot.mergeRuleId))
         engine.restore(intent.snapshot.board, restoredScore = intent.snapshot.score)
         beginRound(GameMode.NORMAL)
-        // The win dialog was already shown when the player quit — don't show it again.
-        winDialogShown = intent.snapshot.hasWon
+        // The player resumed the round by choice, so every milestone the board
+        // already holds is treated as passed — the next dialog fires only when a
+        // fresh milestone is reached from here.
+        milestonesResolved = milestoneTiles().lastOrNull { engine.maxTile >= it } ?: 0
         return emitState().copy(moveCount = intent.snapshot.moveCount)
     }
 
@@ -374,9 +383,44 @@ class GameReducer(
         } else 0
     }
 
+    /**
+     * The milestone tile values at which the "continue?" dialog is offered,
+     * starting at the merge rule's win value and doubling (2048, 4096, 8192, ...).
+     * Capped so the list stays sensible for the lifetime of a round.
+     */
+    private fun milestoneTiles(): List<Int> {
+        val start = engine.mergeRule.defaultWinValue
+        val tiles = mutableListOf<Int>()
+        var value = start
+        while (value <= 100_000) {
+            tiles += value
+            value *= 2
+        }
+        return tiles
+    }
+
+    /** The first milestone whose tile the board holds but the player hasn't resolved yet. */
+    private fun nextPendingMilestone(): Int? =
+        milestoneTiles().firstOrNull { it > milestonesResolved && engine.maxTile >= it }
+
+    private fun handleContinueAfterWin(previous: GameState): GameState {
+        milestonesResolved = maxOf(milestonesResolved, previous.winDialogTile)
+        return previous.copy(showWinDialog = false, winDialogTile = 0)
+    }
+
+    private fun handleEndGameAfterWin(previous: GameState): GameState {
+        milestonesResolved = maxOf(milestonesResolved, previous.winDialogTile)
+        if (!engine.isGameOver) engine.finishGame()
+        // Ending at a milestone still counts as a finished round.
+        if (!recordEmittedForCurrentGame && engine.moveCount > 0) {
+            emitGameOverRecord()
+            recordEmittedForCurrentGame = true
+        }
+        return emitState()
+    }
+
     private fun emitState(): GameState {
-        val shouldShowWin = engine.hasWon && !winDialogShown
-        if (shouldShowWin) winDialogShown = true
+        val pending = nextPendingMilestone()
 
         return GameState(
             board = engine.getBoard(),
@@ -385,7 +429,8 @@ class GameReducer(
             bestScoreByBoardSize = prefs.bestScoreByBoardSize,
             isGameOver = engine.isGameOver,
             hasWon = engine.hasWon,
-            showWinDialog = shouldShowWin,
+            showWinDialog = pending != null,
+            winDialogTile = pending ?: 0,
             maxTile = engine.maxTile,
             bestMaxTile = prefs.bestMaxTile,
             bestMaxTileByBoardSize = prefs.bestMaxTileByBoardSize,

@@ -17,6 +17,8 @@ sealed class GameIntent {
     data object TimerExpired : GameIntent()
     data object DismissWinDialog : GameIntent()
     data object ContinueAfterWin : GameIntent()
+    /** The player declined to continue past a milestone tile — end the round. */
+    data object EndGameAfterWin : GameIntent()
     data object Undo : GameIntent()
     /** Pause / resume the current round. While paused, moves and the timer are suspended. */
     data object TogglePause : GameIntent()

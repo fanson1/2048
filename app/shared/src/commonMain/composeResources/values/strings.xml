@@ -40,9 +40,10 @@
 
     <!-- ===== Win overlay ===== -->
     <string name="dialog_win_title">You win!</string>
-    <string name="dialog_win_subtitle">You made the 2048 tile!</string>
+    <string name="dialog_win_subtitle">You made the %1$d tile!</string>
     <string name="dialog_win_play_again">Play again</string>
     <string name="dialog_win_keep_going">Keep going</string>
+    <string name="dialog_win_end_game">End game</string>
     <string name="overlay_close_button">Close</string>
     <string name="overlay_score_label">SCORE</string>
     <string name="overlay_best_label">BEST</string>

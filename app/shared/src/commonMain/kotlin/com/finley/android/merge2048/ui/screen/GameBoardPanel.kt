@@ -32,8 +32,8 @@ import com.finley.android.merge2048.ui.GameOverSummary
 import com.finley.android.merge2048.ui.GameOverlay
 import com.finley.android.merge2048.ui.MergePopups
 import merge2048.app.shared.generated.resources.Res
+import merge2048.app.shared.generated.resources.dialog_win_end_game
 import merge2048.app.shared.generated.resources.dialog_win_keep_going
-import merge2048.app.shared.generated.resources.dialog_win_play_again
 import merge2048.app.shared.generated.resources.dialog_win_subtitle
 import merge2048.app.shared.generated.resources.dialog_win_title
 import merge2048.app.shared.generated.resources.pause_overlay_resume
@@ -52,7 +52,7 @@ internal fun BoardAndOverlays(
     onSwipe: (Direction) -> Unit,
     onNewGame: () -> Unit,
     onContinue: () -> Unit,
-    onDismissWin: () -> Unit,
+    onEndGame: () -> Unit,
     onTogglePause: () -> Unit,
     modifier: Modifier = Modifier,
     lastMergePoints: Int = 0,
@@ -107,16 +107,16 @@ internal fun BoardAndOverlays(
             if (showWin) {
                 GameOverlay(
                     title = stringResource(Res.string.dialog_win_title),
-                    subtitle = stringResource(Res.string.dialog_win_subtitle),
+                    subtitle = stringResource(Res.string.dialog_win_subtitle, maxTile),
                     score = score,
                     bestScore = bestScore,
                     maxTile = maxTile,
-                    primaryLabel = stringResource(Res.string.dialog_win_play_again),
-                    onPrimary = onNewGame,
-                    secondaryLabel = stringResource(Res.string.dialog_win_keep_going),
-                    onSecondary = onContinue,
+                    primaryLabel = stringResource(Res.string.dialog_win_keep_going),
+                    onPrimary = onContinue,
+                    secondaryLabel = stringResource(Res.string.dialog_win_end_game),
+                    onSecondary = onEndGame,
                     highlight = GameColors.Tile2048,
-                    onDismiss = onDismissWin
+                    onDismiss = null
                 )
             }
 
