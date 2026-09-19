@@ -50,6 +50,12 @@ fun AppNavigation(viewModel: GameViewModel) {
     val records by viewModel.history.collectAsState()
     var screen by remember { mutableStateOf<Screen>(Screen.Game) }
 
+    // System back (hardware key / gesture, and Esc on desktop) returns to the
+    // game screen instead of exiting the app while a sub-screen is open.
+    PlatformBackHandler(enabled = screen != Screen.Game) {
+        screen = Screen.Game
+    }
+
     // Daily challenge day number, kept fresh across midnight rollovers. A tiny
     // background tick (every minute) is cheap and guarantees the challenge and
     // the "today" label roll over even if the app stays open past midnight.
@@ -110,7 +116,11 @@ fun AppNavigation(viewModel: GameViewModel) {
                         records = records,
                         onBack = { screen = Screen.Game },
                         dailyResults = prefs.dailyChallengeResults,
-                        todayDayNumber = todayDayNumber
+                        todayDayNumber = todayDayNumber,
+                        onResumeRecord = { record ->
+                            viewModel.resumeRecord(record)
+                            screen = Screen.Game
+                        }
                     )
                 }
             }

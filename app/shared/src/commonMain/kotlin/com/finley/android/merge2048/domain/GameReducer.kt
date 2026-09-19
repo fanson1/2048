@@ -1,5 +1,8 @@
 package com.finley.android.merge2048.domain
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+
 /**
  * Pure MVI reducer: the single place that turns a [GameIntent] into a new [GameState].
  *
@@ -10,7 +13,13 @@ package com.finley.android.merge2048.domain
  */
 class GameReducer(
     private val achievementEngine: AchievementEngine = AchievementEngine(),
-    private val onGameOver: (GameRecord) -> Unit = {}
+    /**
+     * Emitted whenever a game leaves the active table: on game-over / win resets and
+     * when an in-progress game is abandoned for a fresh round. In the latter case the
+     * record carries [GameRecord.incomplete] = true plus a resumable [GameSnapshot]
+     * so the player can pick the game back up from the history list.
+     */
+    private val onRecord: (GameRecord) -> Unit = {}
 ) {
     private var engine: GameEngine = GameEngine(mergeRule = MergeRules.byId("classic"))
     private var prefs: UserPreferences = UserPreferences.Default
@@ -68,6 +77,9 @@ class GameReducer(
         val isTimed: Boolean get() = timed != null
     }
 
+    /** Serializer for building [GameSnapshot] JSON that is stored in incomplete records. */
+    private val snapshotJson = Json { ignoreUnknownKeys = true }
+
     fun reduce(previous: GameState, intent: GameIntent): GameState {
         return when (intent) {
             is GameIntent.Move -> handleMove(previous, intent.direction)
@@ -107,6 +119,52 @@ class GameReducer(
     }
 
     /**
+     * If the player is mid-game (has progress and hasn't already emitted a
+     * record for this round), archive the in-progress game as an incomplete
+     * [GameRecord] carrying a resumable [GameSnapshot]. Called at the very
+     * start of every handler that replaces [engine] for a fresh round —
+     * NewGame, board-size / merge-rule changes, challenge starts, and restore.
+     *
+     * No-op when the engine is fresh (no merges/score), the game is already
+     * over, or a record was already emitted for the current game.
+     */
+    private fun archiveAbandonedGameIfAny() {
+        val worthSaving = engine.moveCount > 0 &&
+            engine.score > 0 &&
+            !engine.isGameOver &&
+            !recordEmittedForCurrentGame
+        if (!worthSaving) return
+
+        val board = engine.getBoard()
+        val snapshot = GameSnapshot(
+            board = board,
+            score = engine.score,
+            moveCount = engine.moveCount,
+            hasWon = engine.hasWon,
+            boardSize = engine.boardSize,
+            mergeRuleId = engine.mergeRule.id
+        )
+        val record = GameRecord(
+            finishedAtMs = nowMillis(),
+            boardSize = engine.boardSize,
+            score = engine.score,
+            maxTile = engine.maxTile,
+            moveCount = engine.moveCount,
+            totalMerges = engine.totalMergesThisGame,
+            won = engine.hasWon,
+            didUndo = didUseUndoThisGame,
+            scoreOverTime = engine.scoreOverTime.takeLast(200),
+            bestMove = engine.bestMoveThisGame,
+            mode = session.mode,
+            mergeRuleId = engine.mergeRule.id,
+            incomplete = true,
+            snapshotJson = snapshotJson.encodeToString(GameSnapshot.serializer(), snapshot)
+        )
+        onRecord(record)
+        recordEmittedForCurrentGame = true
+    }
+
+    /**
      * Compute a deterministic seed from today's date so all players get the same board.
      * Platform layer should call this to get today's seed:
      *   val epoch2024 = 1704067200000L
@@ -114,6 +172,7 @@ class GameReducer(
      *   val seed = dayNumber * 7919 + 1
      */
     private fun handleDailyChallenge(boardSize: Int, seed: Int): GameState {
+        archiveAbandonedGameIfAny()
         engine = GameEngine(boardSize = boardSize, seed = seed, mergeRule = MergeRules.byId(prefs.mergeRuleId))
         beginRound(GameMode.DAILY, dayNumber = DailyChallenge.dayFromSeed(seed))
         recordGameStarted()
@@ -121,6 +180,7 @@ class GameReducer(
     }
 
     private fun handleChangeBoardSize(boardSize: Int): GameState {
+        archiveAbandonedGameIfAny()
         prefs = prefs.copy(boardSize = boardSize)
         engine = GameEngine(boardSize = boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
         beginRound(GameMode.NORMAL)
@@ -129,6 +189,7 @@ class GameReducer(
     }
 
     private fun handleTimedChallenge(boardSize: Int, durationSeconds: Int): GameState {
+        archiveAbandonedGameIfAny()
         prefs = prefs.copy(boardSize = boardSize)
         engine = GameEngine(boardSize = boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
         beginRound(GameMode.TIMED, timed = TimedClock(durationSeconds))
@@ -214,6 +275,7 @@ class GameReducer(
     }
 
     private fun handleNewGame(): GameState {
+        archiveAbandonedGameIfAny()
         engine = GameEngine(boardSize = prefs.boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
         beginRound(GameMode.NORMAL)
         recordGameStarted()
@@ -221,6 +283,7 @@ class GameReducer(
     }
 
     private fun handleChangeMergeRule(mergeRuleId: String): GameState {
+        archiveAbandonedGameIfAny()
         prefs = prefs.copy(mergeRuleId = mergeRuleId)
         engine = GameEngine(boardSize = prefs.boardSize, mergeRule = MergeRules.byId(mergeRuleId))
         beginRound(GameMode.NORMAL)
@@ -260,6 +323,7 @@ class GameReducer(
     }
 
     private fun handleRestore(intent: GameIntent.RestoreGame): GameState {
+        archiveAbandonedGameIfAny()
         prefs = intent.prefs
         engine = GameEngine(boardSize = intent.snapshot.boardSize, mergeRule = MergeRules.byId(intent.snapshot.mergeRuleId))
         engine.restore(intent.snapshot.board, restoredScore = intent.snapshot.score)
@@ -274,9 +338,13 @@ class GameReducer(
         val mergeRuleChanged = prefs.mergeRuleId != intent.prefs.mergeRuleId
         prefs = intent.prefs
         return if ((boardSizeChanged || mergeRuleChanged) && !engine.isGameOver) {
+            // Starting a fresh round from the settings screen follows the exact
+            // same lifecycle as NewGame / ChangeBoardSize / ChangeMergeRule:
+            // archive the current round first, then reset the engine & bookkeeping.
+            archiveAbandonedGameIfAny()
             engine = GameEngine(boardSize = prefs.boardSize, mergeRule = MergeRules.byId(prefs.mergeRuleId))
-            didUseUndoThisGame = false
-            winDialogShown = false
+            beginRound(GameMode.NORMAL)
+            recordGameStarted()
             emitState()
         } else {
             // Update state to reflect any preference changes (best scores etc.)
@@ -370,7 +438,7 @@ class GameReducer(
             mode = session.mode,
             mergeRuleId = prefs.mergeRuleId
         )
-        onGameOver(record)
+        onRecord(record)
         if (session.mode == GameMode.DAILY) {
             // Persist a dedicated per-day record, keeping only the best score
             // ever achieved for that day's challenge. HistoryScreen reads this

@@ -51,7 +51,10 @@ import org.jetbrains.compose.resources.stringResource
 
 /**
  * Stats + history screen. Shows lifetime aggregates at the top, the last
- * game's score curve, and a scrollable list of the most recent finished games.
+ * game's score curve, and a scrollable list of the most recent games.
+ * Abandoned in-progress games are shown as of the last finished game
+ * aggregates (via [com.finley.android.merge2048.domain.LifetimeStats]) and
+ * appear in the recent list with a resume affordance ([onResumeRecord]).
  */
 @Composable
 fun HistoryScreen(
@@ -59,19 +62,25 @@ fun HistoryScreen(
     records: List<GameRecord>,
     onBack: () -> Unit,
     dailyResults: Map<Int, DailyChallengeResult> = emptyMap(),
-    todayDayNumber: Int = 0
+    todayDayNumber: Int = 0,
+    onResumeRecord: (GameRecord) -> Unit = {}
 ) {
     val emDash = stringResource(Res.string.placeholder_em_dash)
+    // Lifetime, leaderboard and the "last game" curve only make sense for
+    // completed games — abandoned (incomplete) records are shown below.
+    val finishedRecords = records.filter { !it.incomplete }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(GameColors.AppBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 24.dp)
+            .padding(horizontal = 20.dp)
     ) {
-        // ---- Header ----
+        // ---- Header (pinned: stays at the top while the content scrolls) ----
         val backDesc = stringResource(Res.string.access_back)
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(top = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = stringResource(Res.string.icon_back_arrow),
                 fontSize = 28.sp,
@@ -90,7 +99,13 @@ fun HistoryScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(top = 20.dp, bottom = 24.dp)
+        ) {
 
         // ---- Lifetime aggregates card ----
         StatsCard(title = stringResource(Res.string.stats_card_lifetime)) {
@@ -137,7 +152,7 @@ fun HistoryScreen(
         }
 
         // ---- Local leaderboard (top all-time) ----
-        val leaderboard = records.sortedByDescending { it.score }.take(5)
+        val leaderboard = finishedRecords.sortedByDescending { it.score }.take(5)
         if (leaderboard.isNotEmpty()) {
             Spacer(modifier = Modifier.height(20.dp))
             Text(
@@ -155,7 +170,7 @@ fun HistoryScreen(
         }
 
         // ---- Last game curve ----
-        val lastRecord = records.firstOrNull()
+        val lastRecord = finishedRecords.firstOrNull()
         if (lastRecord != null && lastRecord.scoreOverTime.size > 1) {
             Spacer(modifier = Modifier.height(20.dp))
             StatsCard(title = stringResource(Res.string.stats_card_last_game)) {
@@ -256,7 +271,7 @@ fun HistoryScreen(
             )
             Spacer(modifier = Modifier.height(8.dp))
             for (record in records.take(20)) {
-                GameRecordRow(record)
+                GameRecordRow(record, onResume = onResumeRecord)
                 Spacer(modifier = Modifier.height(6.dp))
             }
         } else {
@@ -271,6 +286,7 @@ fun HistoryScreen(
         }
 
         Spacer(modifier = Modifier.height(40.dp))
+        }
     }
 }
 

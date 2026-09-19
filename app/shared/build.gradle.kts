@@ -58,6 +58,7 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation(libs.multiplatform.settings.datastore)
             implementation(libs.androidx.appcompat)
+            implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.core.ktx)
         }
         commonMain.dependencies {

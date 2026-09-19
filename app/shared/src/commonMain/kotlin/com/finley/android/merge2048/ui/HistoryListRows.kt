@@ -27,6 +27,8 @@ import merge2048.app.shared.generated.resources.daily_challenge_row_summary_form
 import merge2048.app.shared.generated.resources.daily_challenge_row_won_format
 import merge2048.app.shared.generated.resources.history_row_details_format
 import merge2048.app.shared.generated.resources.history_row_details_won_format
+import merge2048.app.shared.generated.resources.history_row_incomplete_label
+import merge2048.app.shared.generated.resources.history_row_resume
 import merge2048.app.shared.generated.resources.history_row_score_format
 import merge2048.app.shared.generated.resources.mode_tag_daily
 import merge2048.app.shared.generated.resources.mode_tag_timer
@@ -196,13 +198,16 @@ private fun dayLabel(dayNumber: Int, todayDayNumber: Int): String {
 }
 
 @Composable
-internal fun GameRecordRow(record: GameRecord) {
+internal fun GameRecordRow(record: GameRecord, onResume: (GameRecord) -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(GameColors.Surface)
-            .clickable { /* future: open detail */ }
+            .background(
+                if (record.incomplete) GameColors.Surface.copy(alpha = 0.75f)
+                else GameColors.Surface
+            )
+            .clickable { if (record.incomplete) onResume(record) }
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -214,12 +219,28 @@ internal fun GameRecordRow(record: GameRecord) {
             modifier = Modifier.width(34.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stringResource(Res.string.history_row_score_format, record.score),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = GameColors.HeaderText
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(Res.string.history_row_score_format, record.score),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GameColors.HeaderText
+                )
+                if (record.incomplete) {
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = stringResource(Res.string.history_row_incomplete_label),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(GameColors.ButtonBackground.copy(alpha = 0.9f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
             Text(
                 text = if (record.won)
                     stringResource(Res.string.history_row_details_won_format, record.moveCount, record.maxTile)
@@ -231,6 +252,10 @@ internal fun GameRecordRow(record: GameRecord) {
         }
         ModeBadge(mode = record.mode)
         MergeRuleBadge(ruleId = record.mergeRuleId)
+        if (record.incomplete) {
+            Spacer(modifier = Modifier.width(8.dp))
+            ResumeChip(onClick = { onResume(record) })
+        }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = formatTimeAgo(record.finishedAtMs),
@@ -238,6 +263,26 @@ internal fun GameRecordRow(record: GameRecord) {
             color = GameColors.SubText
         )
     }
+}
+
+/**
+ * Resume affordance for an abandoned in-progress game. Reads and acts as a
+ * button; the surrounding row is also clickable so the whole card is tappable.
+ */
+@Composable
+private fun ResumeChip(onClick: () -> Unit) {
+    Text(
+        text = stringResource(Res.string.history_row_resume),
+        fontSize = 11.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color.White,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(GameColors.ButtonBackground)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+    )
 }
 
 /** Lightweight "x minutes ago" formatter. Uses stringResource so each label is localizable. */

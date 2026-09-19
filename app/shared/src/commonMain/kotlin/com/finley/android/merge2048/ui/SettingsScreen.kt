@@ -68,12 +68,14 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(GameColors.AppBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 20.dp, vertical = 24.dp)
+            .padding(horizontal = 20.dp)
     ) {
-        // ---- Header ----
+        // ---- Header (pinned: stays at the top while the content scrolls) ----
         val backDesc = stringResource(Res.string.access_back)
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.padding(top = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = stringResource(Res.string.icon_back_arrow),
                 fontSize = 28.sp,
@@ -92,7 +94,13 @@ fun SettingsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(28.dp))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(top = 28.dp, bottom = 24.dp)
+        ) {
 
         // ---- Language ----
         SettingSection(stringResource(Res.string.settings_section_language)) {
@@ -353,5 +361,6 @@ fun SettingsScreen(
         }
 
         Spacer(modifier = Modifier.height(40.dp))
+        }
     }
 }

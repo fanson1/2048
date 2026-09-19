@@ -3,6 +3,10 @@ package com.finley.android.merge2048.domain
 /**
  * Lifetime statistics aggregated from a list of [GameRecord]s. Used by the
  * stats screen. Empty inputs yield sensible zeros rather than crashing.
+ *
+ * Incomplete records (abandoned, resumable games) are excluded from the
+ * aggregates — they have no final score, so counting them would skew the
+ * number of games played, win rate, averages, and per-board stats.
  */
 data class LifetimeStats(
     val gamesPlayed: Int,
@@ -33,16 +37,17 @@ data class LifetimeStats(
         )
 
         fun from(records: List<GameRecord>): LifetimeStats {
-            if (records.isEmpty()) return Empty
-            val bestScore = records.maxOf { it.score }
-            val bestMaxTile = records.maxOf { it.maxTile }
-            val totalMerges = records.sumOf { it.totalMerges.toLong() }
-            val averageScore = records.sumOf { it.score } / records.size
-            val averageMoves = records.sumOf { it.moveCount } / records.size
-            val bestSingleMove = records.maxOf { it.bestMove }
-            val longestGame = records.maxOf { it.moveCount }
-            val gamesWon = records.count { it.won }
-            val perBoard = records.groupBy { it.boardSize }.mapValues { (_, list) ->
+            val finished = records.filter { !it.incomplete }
+            if (finished.isEmpty()) return Empty
+            val bestScore = finished.maxOf { it.score }
+            val bestMaxTile = finished.maxOf { it.maxTile }
+            val totalMerges = finished.sumOf { it.totalMerges.toLong() }
+            val averageScore = finished.sumOf { it.score } / finished.size
+            val averageMoves = finished.sumOf { it.moveCount } / finished.size
+            val bestSingleMove = finished.maxOf { it.bestMove }
+            val longestGame = finished.maxOf { it.moveCount }
+            val gamesWon = finished.count { it.won }
+            val perBoard = finished.groupBy { it.boardSize }.mapValues { (_, list) ->
                 PerBoardStats(
                     gamesPlayed = list.size,
                     bestScore = list.maxOf { it.score },
@@ -51,9 +56,9 @@ data class LifetimeStats(
                 )
             }
             return LifetimeStats(
-                gamesPlayed = records.size,
+                gamesPlayed = finished.size,
                 gamesWon = gamesWon,
-                winRate = gamesWon.toDouble() / records.size,
+                winRate = gamesWon.toDouble() / finished.size,
                 bestScore = bestScore,
                 bestMaxTile = bestMaxTile,
                 totalMerges = totalMerges,

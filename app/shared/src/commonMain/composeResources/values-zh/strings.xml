@@ -160,6 +160,8 @@
     <string name="history_row_score_format">%1$d 分</string>
     <string name="history_row_details_format">%1$d 步 • 最大 %2$d</string>
     <string name="history_row_details_won_format">%1$d 步 • 最大 %2$d • 🏆</string>
+    <string name="history_row_incomplete_label">进行中</string>
+    <string name="history_row_resume">继续</string>
     <string name="time_ago_now">刚刚</string>
     <string name="time_ago_minutes_format">%1$d分钟前</string>
     <string name="time_ago_hours_format">%1$d小时前</string>

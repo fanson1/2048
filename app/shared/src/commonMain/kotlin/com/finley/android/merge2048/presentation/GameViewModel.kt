@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 
 /**
  * Thin MVI shell: holds the [GameState] flow, forwards [GameIntent]s to the
@@ -35,8 +37,9 @@ class GameViewModel(
 ) : ViewModel() {
 
     private val reducer = com.finley.android.merge2048.domain.GameReducer(
-        onGameOver = { record -> historyRepository.append(record) }
+        onRecord = { record -> historyRepository.append(record) }
     )
+    private val snapshotJson = Json { ignoreUnknownKeys = true }
     private val _state: MutableStateFlow<GameState> by lazy { MutableStateFlow(initialState()) }
     val state: StateFlow<GameState> by lazy { _state.asStateFlow() }
 
@@ -145,5 +148,19 @@ class GameViewModel(
     /** Wipe the saved game history. */
     fun clearHistory() {
         historyRepository.clear()
+    }
+
+    /**
+     * Resume an abandoned game from a history record. No-op when the record
+     * carries no resumable snapshot (e.g. a finished game) or the snapshot
+     * cannot be decoded. Restores the round via [GameIntent.RestoreGame].
+     */
+    fun resumeRecord(record: GameRecord) {
+        val snapshot = record.snapshotJson?.let {
+            runCatching {
+                snapshotJson.decodeFromString(GameSnapshot.serializer(), it)
+            }.getOrNull()
+        } ?: return
+        onIntent(GameIntent.RestoreGame(snapshot, settingsRepository.snapshot()))
     }
 }

@@ -18,7 +18,7 @@ class DailyChallengeRecordTest {
     fun `daily challenge game over tags record as DAILY and persists dedicated result`() {
         var emittedRecord: GameRecord? = null
         val reducer = GameReducer(
-            onGameOver = { emittedRecord = it }
+            onRecord = { emittedRecord = it }
         )
 
         val seed = DailyChallenge.seedAt(1704153600000L) // a known day
@@ -49,7 +49,7 @@ class DailyChallengeRecordTest {
     fun `normal game over tags record as NORMAL and writes no daily result`() {
         var emittedRecord: GameRecord? = null
         val reducer = GameReducer(
-            onGameOver = { emittedRecord = it }
+            onRecord = { emittedRecord = it }
         )
         reducer.reduce(GameState(), GameIntent.NewGame)
         reducer.seedBoardForTesting(
